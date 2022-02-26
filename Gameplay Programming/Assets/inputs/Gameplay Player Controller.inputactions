@@ -1,5 +1,5 @@
 {
-    "name": "Gameplay Programming",
+    "name": "Gameplay Player Controller",
     "maps": [
         {
             "name": "Player",
@@ -192,7 +192,7 @@
                     "path": "<Pointer>/delta",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";Keyboard&Mouse;Touch",
+                    "groups": "Touch",
                     "action": "Look",
                     "isComposite": false,
                     "isPartOfComposite": false
