@@ -10,30 +10,37 @@ public class PlayerMovController : MonoBehaviour
     GameplayPlayerController controls;
     Vector2 move;
     public float speed = 10.0f;
+    float speed_multiplier = 1.0f;
     public float deadzone = 0.1F;
     public float turn_smooth_time = 0.1f;
     public Transform cam_transform;
     private float turn_smooth_velocity;
 
     bool jumping = false;
-    public float init_jump_velocity;
-    public float max_jumping_height;
-    public float max_jump_time;
-    public float gravity = -9.8f;
+    bool landing = false;
+    public float jump_force = 10.0f;
+    private float jump_velocity = 0.0f;
+    public float gravity = 9.8f;
+    private float additional_decay = 0.0f;
 
+    bool attacking = false;
+    bool attacked = false;
 
     private void Awake()
     {
         controls = new GameplayPlayerController();
         controller = GetComponent<CharacterController>();
         animation_controller = GetComponentInChildren<AnimationStateController>();
-        controls.Player.Move.performed += ctx => SendMessage(ctx.ReadValue<Vector2>());
+        /*controls.Player.Move.performed += ctx => SendMessage(ctx.ReadValue<Vector2>());*/
         controls.Player.Move.performed += ctx => move = ctx.ReadValue<Vector2>();
         controls.Player.Move.canceled += ctx => move = Vector2.zero;
 
-        controls.Player.Jump.started += ctx => SendMessage();
-        controls.Player.Jump.started += ctx => jumping = true;
-        controls.Player.Jump.canceled += ctx => jumping = false;
+        /*controls.Player.Jump.started += ctx => SendMessage();*/
+        controls.Player.Jump.started += ctx => Jump();
+
+        controls.Player.Attack.started += ctx => SendMessage();
+        controls.Player.Attack.started += ctx => attacking = true;
+        /*controls.Player.Attack.started += ctx => HandleAttack();*/
     }
     private void OnEnable()
     {
@@ -55,7 +62,12 @@ public class PlayerMovController : MonoBehaviour
 
     void FixedUpdate()
     {
-        HandleMovement();
+        HandleAttack();
+        if(!attacking && !landing)
+        {
+            HandleMovement();
+            HandleJump();
+        }
     }
 
     private void Update()
@@ -65,30 +77,77 @@ public class PlayerMovController : MonoBehaviour
 
     private void HandleMovement()
     {
+        Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
 
-        Vector3 input_direction = new Vector3(move.x, 0.0f, move.y).normalized;
-
+        speed_multiplier = 0.5f + 2 * input_direction.magnitude;
+        input_direction.Normalize();
         float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + cam_transform.eulerAngles.y;
         float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
         transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
         Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
-        Vector3 movement = speed * camForward;
+        Vector3 movement = Vector3.zero;
+        movement = camForward * speed * speed_multiplier;
+        
         //transform.Translate(camForward, Space.World);
-        if (!compare_to_deadzone(move.x) && !compare_to_deadzone(move.y))
+        if (!Compare2Deadzone(move.x) && !Compare2Deadzone(move.y))
         {
-            movement = new Vector3(0, 0, 0);
+            movement = Vector3.zero;
         }
-        controller.SimpleMove(movement);
+        movement.y = jump_velocity;
 
+        controller.Move(movement * Time.deltaTime);
     }
 
     private void HandleAnimations()
     {
-        Vector3 input_direction = new(move.x, 0.0f, move.y);
-        animation_controller.updateMovement(input_direction.magnitude);
+        if(!jumping && !landing)
+        {
+            Vector3 input_direction = new(move.x, 0.0f, move.y);
+            animation_controller.updateMovement(input_direction.magnitude);
+        }
     }
 
-    private bool compare_to_deadzone( float value)
+    private void HandleJump()
+    {
+        if(controller.isGrounded)
+        {
+            if (jumping && jump_velocity < 0.0f)
+            {
+                jumping = false;
+                animation_controller.triggerLand();
+            }
+            jump_velocity = -gravity * Time.deltaTime;
+        }
+        else
+        {
+            jump_velocity -= (gravity * Time.deltaTime) + additional_decay ;
+            additional_decay += 0.2f * speed * Time.deltaTime;
+        }
+     
+    }
+
+    private void HandleAttack()
+    {
+        if(!jumping && !landing)
+        {
+            if (attacking && !attacked)
+            {
+                animation_controller.triggerAttack();
+                attacked = true;
+            }
+        }
+    }
+    private void Jump()
+    {
+        if(!jumping)
+        {
+            animation_controller.triggerJump();
+            jumping = true;
+            jump_velocity = jump_force;
+            additional_decay = 0.0f;
+        }
+    }
+    private bool Compare2Deadzone( float value)
     {
         if (value < deadzone)
         {
@@ -99,4 +158,20 @@ public class PlayerMovController : MonoBehaviour
         }
         return true;
     }
+
+    public void endAttack()
+    {
+        attacking = false;
+        attacked = false;
+    }
+
+    public void detectHit()
+    {
+        Debug.Log("Hit");
+    }
+
+    /*public void detectLand(bool status)
+    {
+        landing = status;
+    }*/
 }
