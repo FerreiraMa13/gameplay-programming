@@ -5,23 +5,35 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovController : MonoBehaviour
 {
+    AnimationStateController animation_controller;
+    CharacterController controller;
     GameplayPlayerController controls;
     Vector2 move;
     public float speed = 10.0f;
     public float deadzone = 0.1F;
-    public float turnSmoothTime = 0.1f;
-    public Transform camTransform;
-    private float turnSmoothVelocity;
+    public float turn_smooth_time = 0.1f;
+    public Transform cam_transform;
+    private float turn_smooth_velocity;
+
+    bool jumping = false;
+    public float init_jump_velocity;
+    public float max_jumping_height;
+    public float max_jump_time;
+    public float gravity = -9.8f;
+
 
     private void Awake()
     {
         controls = new GameplayPlayerController();
-        controls.Player.Jump.performed += ctx => SendMessage();
-        controls.Player.Move.performed += ctx => SendMessage();
-        controls.Player.Move.performed += ctx =>
-                                      SendMessage(ctx.ReadValue<Vector2>());
+        controller = GetComponent<CharacterController>();
+        animation_controller = GetComponentInChildren<AnimationStateController>();
+        controls.Player.Move.performed += ctx => SendMessage(ctx.ReadValue<Vector2>());
         controls.Player.Move.performed += ctx => move = ctx.ReadValue<Vector2>();
         controls.Player.Move.canceled += ctx => move = Vector2.zero;
+
+        controls.Player.Jump.started += ctx => SendMessage();
+        controls.Player.Jump.started += ctx => jumping = true;
+        controls.Player.Jump.canceled += ctx => jumping = false;
     }
     private void OnEnable()
     {
@@ -43,40 +55,48 @@ public class PlayerMovController : MonoBehaviour
 
     void FixedUpdate()
     {
-        /*Vector3 movement = new Vector3(move.x, 0.0f, move.y) * speed * Time.deltaTime;
-        if(movement.magnitude >= deadzone)
+        HandleMovement();
+    }
+
+    private void Update()
+    {
+        HandleAnimations();
+    }
+
+    private void HandleMovement()
+    {
+
+        Vector3 input_direction = new Vector3(move.x, 0.0f, move.y).normalized;
+
+        float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + cam_transform.eulerAngles.y;
+        float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
+        transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
+        Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
+        Vector3 movement = speed * camForward;
+        //transform.Translate(camForward, Space.World);
+        if (!compare_to_deadzone(move.x) && !compare_to_deadzone(move.y))
         {
-            float rotateAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg + camTransform.eulerAngles.y;
-            float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
-            Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
-
-            transform.Translate(camForward, Space.World);
-        }*/
-
-        Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
-        if (input_direction.magnitude >= deadzone)
-        {
-            
-            float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + camTransform.eulerAngles.y;
-            float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
-            Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
-
-            camForward = camForward * speed * Time.deltaTime;
-
-            transform.Translate(camForward, Space.World);
+            movement = new Vector3(0, 0, 0);
         }
+        controller.SimpleMove(movement);
 
-        /*Vector3 movement = new Vector3(move.x, 0.0f, move.y) * speed * Time.deltaTime;
-        if (movement.magnitude >= deadzone)
+    }
+
+    private void HandleAnimations()
+    {
+        Vector3 input_direction = new(move.x, 0.0f, move.y);
+        animation_controller.updateMovement(input_direction.magnitude);
+    }
+
+    private bool compare_to_deadzone( float value)
+    {
+        if (value < deadzone)
         {
-            float rotateAngle = Mathf.Atan2(movement.x, movement.z) * Mathf.Rad2Deg + camTransform.eulerAngles.y;
-            float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
-
-            Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f) * Vector3.forward;
-            transform.Translate(camForward, Space.World);
-        }*/
+            if(value > - deadzone)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
