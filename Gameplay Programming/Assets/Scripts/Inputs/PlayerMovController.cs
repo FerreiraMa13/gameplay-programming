@@ -25,6 +25,8 @@ public class PlayerMovController : MonoBehaviour
     bool attacking = false;
     bool attacked = false;
 
+    bool falling = false;
+
     private void Awake()
     {
         controls = new GameplayPlayerController();
@@ -83,8 +85,8 @@ public class PlayerMovController : MonoBehaviour
         Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
         Vector3 movement = Vector3.zero;
         movement = camForward * speed * speed_multiplier;
-        
-        //transform.Translate(camForward, Space.World);
+
+
         if (!Compare2Deadzone(move.x) && !Compare2Deadzone(move.y))
         {
             movement = Vector3.zero;
@@ -111,11 +113,23 @@ public class PlayerMovController : MonoBehaviour
             {
                 jumping = false;
                 animation_controller.triggerLand();
+                additional_decay = 0.0f;
+            }
+            else if(falling && jump_velocity < 0.0f)
+            {
+                falling = false;
+                animation_controller.triggerLand();
+                additional_decay = 0.0f;
             }
             jump_velocity = -gravity * Time.deltaTime;
         }
         else
         {
+            if(!falling && !jumping)
+            {
+                falling = true;
+                animation_controller.triggerFall();
+            }
             jump_velocity -= (gravity * Time.deltaTime) + additional_decay ;
             additional_decay += 0.2f * speed * Time.deltaTime;
         }
@@ -124,7 +138,7 @@ public class PlayerMovController : MonoBehaviour
 
     private void HandleAttack()
     {
-        if(!jumping)
+        if(!jumping && !falling)
         {
             if (attacking && !attacked)
             {
@@ -147,7 +161,7 @@ public class PlayerMovController : MonoBehaviour
     
     private void Attack()
     {
-        if(!jumping && !attacked)
+        if(!jumping && !attacked && !falling)
         {
             attacking = true;
         }
