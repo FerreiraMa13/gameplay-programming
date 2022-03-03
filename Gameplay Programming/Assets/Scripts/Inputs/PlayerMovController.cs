@@ -17,7 +17,6 @@ public class PlayerMovController : MonoBehaviour
     private float turn_smooth_velocity;
 
     bool jumping = false;
-    /*bool landing = false;*/
     public float jump_force = 10.0f;
     private float jump_velocity = 0.0f;
     public float gravity = 9.8f;
@@ -31,16 +30,11 @@ public class PlayerMovController : MonoBehaviour
         controls = new GameplayPlayerController();
         controller = GetComponent<CharacterController>();
         animation_controller = GetComponentInChildren<AnimationStateController>();
-        /*controls.Player.Move.performed += ctx => SendMessage(ctx.ReadValue<Vector2>());*/
         controls.Player.Move.performed += ctx => move = ctx.ReadValue<Vector2>();
         controls.Player.Move.canceled += ctx => move = Vector2.zero;
 
-        /*controls.Player.Jump.started += ctx => SendMessage();*/
         controls.Player.Jump.started += ctx => Jump();
-
-        controls.Player.Attack.started += ctx => SendMessage();
         controls.Player.Attack.started += ctx => Attack();
-        /*controls.Player.Attack.started += ctx => HandleAttack();*/
     }
 
     private void OnEnable()
@@ -181,9 +175,4 @@ public class PlayerMovController : MonoBehaviour
     {
         Debug.Log("Hit");
     }
-
-    /*public void detectLand(bool status)
-    {
-        landing = status;
-    }*/
 }
