@@ -9,7 +9,8 @@ public class Pick_Up : MonoBehaviour
         NULL = 0,
         ONCE = 1,
         SPAWN = 2,
-        ETERNAL = 3
+        ETERNAL = 3,
+        LIMITED = 4
     }
 
     public enum PowerUpEffects
@@ -26,7 +27,6 @@ public class Pick_Up : MonoBehaviour
     [System.NonSerialized]
     public GameObject player;
     public float duration = 5.0f;
-    [System.NonSerialized]
     public PowerUpEffects powerUpEffect = PowerUpEffects.NULL;
 
 

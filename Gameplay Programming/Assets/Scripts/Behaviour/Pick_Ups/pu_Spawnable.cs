@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class pu_Spawnable : Pick_Up
 {
-    new PowerUpType type = PowerUpType.SPAWN;
+    [System.NonSerialized]
+    new public PowerUpType type = PowerUpType.SPAWN;
     public float respawn_timer_duration = 5.0f;
     public float respawn_timer = 0.0f;
 

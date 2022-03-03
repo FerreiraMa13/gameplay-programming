@@ -134,7 +134,7 @@ public class PlayerMovController : MonoBehaviour
                 animation_controller.triggerLand();
                 additional_decay = 0.0f;
             }
-            jump_velocity = -gravity * Time.deltaTime * speed_boost;
+            jump_velocity = -gravity * Time.deltaTime;
         }
         else
         {
@@ -144,7 +144,7 @@ public class PlayerMovController : MonoBehaviour
                 animation_controller.triggerFall();
             }
             jump_velocity -= (gravity * Time.deltaTime) + additional_decay ;
-            additional_decay += 0.2f * speed * speed_boost * Time.deltaTime;
+            additional_decay += (0.2f * speed * Time.deltaTime / speed_boost);
         }
      
     }
@@ -166,7 +166,7 @@ public class PlayerMovController : MonoBehaviour
             Debug.Log("Effect being handled");
             if(effect_timer < 0)
             {
-                speed_multiplier = 1.0f;
+                speed_boost = 1.0f;
                 number_jumps = 1;
                 status_effect = Pick_Up.PowerUpEffects.NULL;
                 effect_timer = 0;
@@ -182,7 +182,7 @@ public class PlayerMovController : MonoBehaviour
         {
             case (Pick_Up.PowerUpEffects.SPEED_BOOST):
                 {
-                    speed_multiplier = 3;
+                    speed_boost = 2;
                     break;
                 }
             case (Pick_Up.PowerUpEffects.DOUBLE_JUMP):
