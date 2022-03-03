@@ -26,6 +26,7 @@ public class pu_Spawnable : Pick_Up
                 respawn_timer = respawn_timer_duration;
                 active = true;
                 gameObject.GetComponent<MeshRenderer>().enabled = true;
+                particles_used = false;
             }
         }
     }

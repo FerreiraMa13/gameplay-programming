@@ -28,6 +28,8 @@ public class Pick_Up : MonoBehaviour
     public GameObject player;
     public float duration = 5.0f;
     public PowerUpEffects powerUpEffect = PowerUpEffects.NULL;
+    [System.NonSerialized]
+    public bool particles_used = false;
 
 
     public void Update()
@@ -52,14 +54,19 @@ public class Pick_Up : MonoBehaviour
     {
         if (active)
         {
-            if (particles != null)
+            if (particles != null && !particles_used)
             {
                 Instantiate(particles, transform.position, transform.rotation);
+                particles_used = true;
             }
 
             if (type != PowerUpType.ETERNAL)
             {
                 active = false;
+            }
+            else
+            {
+                particles_used = false;
             }
             ActivateEffect();
 

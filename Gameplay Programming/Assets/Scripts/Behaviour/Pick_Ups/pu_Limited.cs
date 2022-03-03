@@ -30,6 +30,7 @@ public class pu_Limited : Pick_Up
                     active = true;
                     lives -= 1;
                     gameObject.GetComponent<MeshRenderer>().enabled = true;
+                    particles_used = false;
                 }
             }
         }
