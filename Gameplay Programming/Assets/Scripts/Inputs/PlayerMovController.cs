@@ -17,7 +17,7 @@ public class PlayerMovController : MonoBehaviour
     private float turn_smooth_velocity;
 
     bool jumping = false;
-    bool landing = false;
+    /*bool landing = false;*/
     public float jump_force = 10.0f;
     private float jump_velocity = 0.0f;
     public float gravity = 9.8f;
@@ -39,13 +39,15 @@ public class PlayerMovController : MonoBehaviour
         controls.Player.Jump.started += ctx => Jump();
 
         controls.Player.Attack.started += ctx => SendMessage();
-        controls.Player.Attack.started += ctx => attacking = true;
+        controls.Player.Attack.started += ctx => Attack();
         /*controls.Player.Attack.started += ctx => HandleAttack();*/
     }
+
     private void OnEnable()
     {
         controls.Player.Enable();
     }
+
     private void OnDisable()
     {
         controls.Player.Disable();
@@ -63,7 +65,7 @@ public class PlayerMovController : MonoBehaviour
     void FixedUpdate()
     {
         HandleAttack();
-        if(!attacking && !landing)
+        if(!attacking)
         {
             HandleMovement();
             HandleJump();
@@ -100,7 +102,7 @@ public class PlayerMovController : MonoBehaviour
 
     private void HandleAnimations()
     {
-        if(!jumping && !landing)
+        if(!jumping)
         {
             Vector3 input_direction = new(move.x, 0.0f, move.y);
             animation_controller.updateMovement(input_direction.magnitude);
@@ -128,7 +130,7 @@ public class PlayerMovController : MonoBehaviour
 
     private void HandleAttack()
     {
-        if(!jumping && !landing)
+        if(!jumping)
         {
             if (attacking && !attacked)
             {
@@ -137,6 +139,7 @@ public class PlayerMovController : MonoBehaviour
             }
         }
     }
+
     private void Jump()
     {
         if(!jumping)
@@ -147,6 +150,15 @@ public class PlayerMovController : MonoBehaviour
             additional_decay = 0.0f;
         }
     }
+    
+    private void Attack()
+    {
+        if(!jumping && !attacked)
+        {
+            attacking = true;
+        }
+    }
+
     private bool Compare2Deadzone( float value)
     {
         if (value < deadzone)
