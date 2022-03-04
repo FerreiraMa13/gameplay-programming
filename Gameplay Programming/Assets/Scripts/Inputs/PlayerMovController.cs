@@ -9,6 +9,11 @@ public class PlayerMovController : MonoBehaviour
     AnimationStateController animation_controller;
     CharacterController controller;
     GameplayPlayerController controls;
+    public GameObject SpeedBoostParticles;
+    public GameObject DoubleJumpParticles;
+    public GameObject ParticleSpawnPoint;
+    GameObject target_particles;
+    bool particles_deployed = false;
     Vector2 move;
     public float speed = 10.0f;
     [System.NonSerialized]
@@ -34,7 +39,7 @@ public class PlayerMovController : MonoBehaviour
     bool attacked = false;
     bool falling = false;
 
-   Pick_Up.PowerUpEffects status_effect  = Pick_Up.PowerUpEffects.NULL;
+    Pick_Up.PowerUpEffects status_effect = Pick_Up.PowerUpEffects.NULL;
     float effect_timer = 0.0f;
 
 
@@ -69,7 +74,7 @@ public class PlayerMovController : MonoBehaviour
     {
         HandleEffects();
         HandleAttack();
-        if(!attacking)
+        if (!attacking)
         {
             HandleMovement();
             HandleJump();
@@ -77,13 +82,14 @@ public class PlayerMovController : MonoBehaviour
     }
     private void Update()
     {
+        HandleParticles();
         HandleAnimations();
     }
     private void HandleMovement()
     {
         Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
         speed_multiplier = 0.5f + 2 * input_direction.magnitude;
-        
+
         input_direction.Normalize();
         float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + cam_transform.eulerAngles.y;
         float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
@@ -103,7 +109,7 @@ public class PlayerMovController : MonoBehaviour
     }
     private void HandleAnimations()
     {
-        if(!jumping)
+        if (!jumping)
         {
             Vector3 input_direction = new(move.x, 0.0f, move.y);
             animation_controller.updateMovement(input_direction.magnitude);
@@ -119,7 +125,7 @@ public class PlayerMovController : MonoBehaviour
     }
     private void HandleJump()
     {
-        if(controller.isGrounded)
+        if (controller.isGrounded)
         {
             if (jumping && jump_velocity < 0.0f)
             {
@@ -128,7 +134,7 @@ public class PlayerMovController : MonoBehaviour
                 additional_decay = 0.0f;
                 jump_attempts = 0;
             }
-            else if(falling && jump_velocity < 0.0f)
+            else if (falling && jump_velocity < 0.0f)
             {
                 falling = false;
                 animation_controller.triggerLand();
@@ -138,15 +144,48 @@ public class PlayerMovController : MonoBehaviour
         }
         else
         {
-            if(!falling && !jumping)
+            if (!falling && !jumping)
             {
                 falling = true;
                 animation_controller.triggerFall();
             }
-            jump_velocity -= (gravity * Time.deltaTime) + additional_decay ;
+            jump_velocity -= (gravity * Time.deltaTime) + additional_decay;
             additional_decay += (0.2f * speed * Time.deltaTime / speed_boost);
         }
-     
+
+    }
+    private void HandleParticles()
+    {
+        if(effect_timer > 0)
+        {
+            if (!particles_deployed)
+            {
+                switch (status_effect)
+                {
+                    case (Pick_Up.PowerUpEffects.SPEED_BOOST):
+                        {
+                            target_particles = SpeedBoostParticles;
+                            break;
+                        }
+                    case (Pick_Up.PowerUpEffects.DOUBLE_JUMP):
+                        {
+                            target_particles = DoubleJumpParticles;
+                            break;
+                        }
+                }
+                target_particles.SetActive(true);
+                particles_deployed = true;
+            }
+
+        }
+        else
+        {
+            if(target_particles != null && particles_deployed)
+            {
+                particles_deployed = false;
+                target_particles.SetActive(false);
+            }
+        }
     }
     private void HandleAttack()
     {
