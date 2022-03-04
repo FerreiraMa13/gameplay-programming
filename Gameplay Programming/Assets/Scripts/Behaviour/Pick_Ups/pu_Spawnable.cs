@@ -16,7 +16,7 @@ public class pu_Spawnable : Pick_Up
             if(respawn_timer > 0.0f)
             {
                 respawn_timer -= Time.deltaTime;
-                if(gameObject.GetComponent<MeshRenderer>().enabled)
+                if(gameObject.GetComponent<MeshRenderer>().enabled == true)
                 {
                     gameObject.GetComponent<MeshRenderer>().enabled = false;
                 }

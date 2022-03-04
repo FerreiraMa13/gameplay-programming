@@ -156,7 +156,7 @@ public class Movement : MonoBehaviour
             index -= Time.deltaTime;
             Vector3 direction = center - transform.position;
             transform.Translate(direction.normalized * speed * Time.deltaTime);
-            if (Vector3.Distance(transform.position, center) < 0.1 * speed)
+            if (Vector3.Distance(transform.position, center) < 0.05 * speed)
             {
                 /*transform.position = target;*/
             }

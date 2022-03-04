@@ -63,6 +63,7 @@ public class Pick_Up : MonoBehaviour
             if (type != PowerUpType.ETERNAL)
             {
                 active = false;
+                gameObject.GetComponent<MeshRenderer>().enabled = false;
             }
             else
             {
