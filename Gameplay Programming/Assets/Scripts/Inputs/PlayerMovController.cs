@@ -35,7 +35,8 @@ public class PlayerMovController : MonoBehaviour
     public int number_jumps = 1;
     public int jump_attempts = 0;
 
-    bool attacking = false;
+    [System.NonSerialized]
+    public bool attacking = false;
     bool attacked = false;
     bool falling = false;
 
