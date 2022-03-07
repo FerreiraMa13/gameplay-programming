@@ -37,7 +37,6 @@ public class AnimationStateController : MonoBehaviour
             animator.SetFloat(movementHash, new_movement);
         }
     }
-
     public void triggerJump()
     {
         animator.SetTrigger(jumpHash);
@@ -54,7 +53,6 @@ public class AnimationStateController : MonoBehaviour
     {
         animator.SetTrigger(fallHash);
     }
-
     public void listenAttack(int status)
     {
         switch (status)
@@ -68,5 +66,23 @@ public class AnimationStateController : MonoBehaviour
             case 0:
                 break;
         }
+    }
+    public void listenLand(int status)
+    {
+        switch (status)
+        {
+            case 1:
+                player_mov.detectHit();
+                break;
+            case 2:
+                player_mov.endAttack();
+                break;
+            case 0:
+                break;
+        }
+    }
+    public void speedUP(float factor)
+    {
+        animator.speed = factor;
     }
 }
