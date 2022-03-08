@@ -54,20 +54,22 @@ public class SlidingDoor : DoorAnimator
     {
         Vector3 direction = destinationPoint - transform.position;
         transform.Translate(direction.normalized * openingSpeed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, destinationPoint) < 0.1 * openingSpeed)
+        if (Vector3.Distance(transform.position, destinationPoint) < 0.06 * openingSpeed)
         {
             transform.position = destinationPoint;
             status = DoorStatus.OPEN;
+            Debug.Log("Open");
         }
     }
     public override void ClosingMovement()
     {
         Vector3 direction = startingPoint - transform.position;
         transform.Translate(direction.normalized * openingSpeed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, startingPoint) < 0.1 * openingSpeed)
+        if (Vector3.Distance(transform.position, startingPoint) < 0.06 * openingSpeed)
         {
             transform.position = startingPoint;
             status = DoorStatus.CLOSED;
+            Debug.Log("Close");
         }
     }
     void findDestination(Vector3 direction)

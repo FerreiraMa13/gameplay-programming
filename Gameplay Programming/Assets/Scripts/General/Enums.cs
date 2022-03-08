@@ -12,4 +12,11 @@ public class Enums : MonoBehaviour
         DOWN = 3,
         LEFT = 4
     }
+    public enum Axis
+    {
+        NONE = 0,
+        XAXIS = 1,
+        YAXIS = 2,
+        ZAXIS = 3
+    }
 }

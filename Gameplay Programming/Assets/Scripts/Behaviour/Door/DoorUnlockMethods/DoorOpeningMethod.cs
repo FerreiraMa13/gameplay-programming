@@ -42,11 +42,26 @@ public class DoorOpeningMethod : MonoBehaviour
         
     }
 
+    public bool Lock()
+    {
+        if (!locked)
+        {
+            locked = true;
+            animator.Close();
+            return true;
+        }
+        return false;
+    }
+
     void Update()
     {
         if(UnlockRequirements())
         {
             Unlock();
+        }
+        else
+        {
+            Lock();
         }
     }
 }

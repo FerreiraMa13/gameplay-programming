@@ -16,6 +16,7 @@ public class AnimationStateController : MonoBehaviour
     int landHash;
     int attackHash;
     int fallHash;
+    int interactHash;
     float movement;
 
     private void Start()
@@ -26,6 +27,7 @@ public class AnimationStateController : MonoBehaviour
         jumpHash = Animator.StringToHash("jump");
         landHash = Animator.StringToHash("land");
         attackHash = Animator.StringToHash("attack");
+        interactHash = Animator.StringToHash("interact");
         fallHash = Animator.StringToHash("fall");
     }
 
@@ -49,19 +51,24 @@ public class AnimationStateController : MonoBehaviour
     {
         animator.SetTrigger(attackHash);
     }
+    public void triggerInteract()
+    {
+        animator.SetTrigger(interactHash);
+    }
     public void triggerFall()
     {
         animator.SetTrigger(fallHash);
     }
     public void listenAttack(int status)
     {
+        Debug.Log(status);
         switch (status)
         {
             case (int)attackEvents.HIT:
                 player_mov.detectHit();
                 break;
             case (int)attackEvents.END:
-                player_mov.endAttack();
+                player_mov.endInteraction();
                 break;
             case 0:
                 break;
@@ -72,10 +79,10 @@ public class AnimationStateController : MonoBehaviour
         switch (status)
         {
             case 1:
-                player_mov.detectHit();
+                player_mov.detectLand(false);
                 break;
             case 2:
-                player_mov.endAttack();
+                player_mov.detectLand(true);
                 break;
             case 0:
                 break;
