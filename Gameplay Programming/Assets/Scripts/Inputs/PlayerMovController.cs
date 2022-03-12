@@ -45,7 +45,9 @@ public class PlayerMovController : MonoBehaviour
     bool attacked = false;
     bool falling = false;
 
+    [System.NonSerialized]
     public int interact_in_range = 0;
+    public float camera_sensitivity = 1.0f;
 
     Pick_Up.PowerUpEffects status_effect = Pick_Up.PowerUpEffects.NULL;
     float effect_timer = 0.0f;
