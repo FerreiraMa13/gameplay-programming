@@ -19,6 +19,7 @@ public class RotatingDoor : DoorAnimator
     {
         type = DoorOpeningAnimation.ROTATING;
         hinge = new GameObject();
+        hinge.name = "DoorHinge";
         SetUp();
     }
 

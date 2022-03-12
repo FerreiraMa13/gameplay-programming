@@ -14,7 +14,8 @@ public class DoorOpeningMethod : MonoBehaviour
 
     [System.NonSerialized]
     public DoorUnlockingMethod method = DoorUnlockingMethod.NONE;
-    DoorAnimator animator;
+    [System.NonSerialized]
+    public DoorAnimator animator;
     bool locked = true;
 
     public void Start()
