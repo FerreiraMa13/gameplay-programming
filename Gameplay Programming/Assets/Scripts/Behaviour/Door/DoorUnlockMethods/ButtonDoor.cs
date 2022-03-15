@@ -20,4 +20,11 @@ public class ButtonDoor : DoorOpeningMethod
     {
         return button.pressed;
     }
+    public override void AdditionalUpdate()
+    {
+        if(animator.stationary)
+        {
+            button.DoorFinishedMovement();
+        }
+    }
 }

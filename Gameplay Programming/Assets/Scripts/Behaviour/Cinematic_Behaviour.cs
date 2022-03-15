@@ -17,8 +17,10 @@ public class Cinematic_Behaviour : MonoBehaviour
     public Cinemachine.CinemachineVirtualCamera cameraB;
     public PlayableDirector timeline;
 
-    SequenceState current_state = SequenceState.IDLE;
-    SequenceState past_state = SequenceState.IDLE;
+    public SequenceState current_state = SequenceState.IDLE;
+    public SequenceState past_state = SequenceState.IDLE;
+    [System.NonSerialized]
+    public bool triggered = false;
     void Awake()
     {
         if(timeline == null)
@@ -41,22 +43,23 @@ public class Cinematic_Behaviour : MonoBehaviour
                     }
                 case (SequenceState.STAY_B):
                     {
-                        cameraB.Priority = 20;
+                        
                         timeline.Pause();
-             
+                        
                         break;
                     }
                 case (SequenceState.BA_TRANSITION):
                     {
+
                         StartBA();
+                        if (cameraB.Priority > 10)
+                        {
+                            cameraB.Priority = 9;
+                        }
                         break;
                     }
                 case (SequenceState.DONE):
                     {
-                        if(cameraB.Priority > 10)
-                        {
-                            cameraB.Priority = 9;
-                        }
                         player_controller.EnableInput();
                         break;
                     }
@@ -67,10 +70,12 @@ public class Cinematic_Behaviour : MonoBehaviour
     void StartAB()
     {
         timeline.Play();
+        cameraB.Priority = 20;
         player_controller.DisableInput();
     }
     void StartBA()
     {
+        timeline.time = 2;
         timeline.Resume();
     }
     public void SignalAB()
@@ -88,5 +93,6 @@ public class Cinematic_Behaviour : MonoBehaviour
     public void SignalSTARTING()
     {
         current_state = SequenceState.AB_TRANSITION;
+        triggered = true;
     }
 }

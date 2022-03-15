@@ -24,6 +24,8 @@ public class DoorAnimator : MonoBehaviour
     public DoorStatus status = DoorStatus.CLOSED;
     [System.NonSerialized]
     public DoorOpeningAnimation type = DoorOpeningAnimation.NONE;
+    [System.NonSerialized]
+    public bool stationary = false;
 
     private void Update()
     {
@@ -41,6 +43,15 @@ public class DoorAnimator : MonoBehaviour
                         ClosingMovement();
                         break;
                     }
+            }
+
+            if((status == DoorStatus.CLOSED || status == DoorStatus.OPEN))
+            {
+                stationary = true;
+            }
+            else
+            {
+                stationary = false;
             }
         }
     }

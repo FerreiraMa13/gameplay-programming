@@ -64,5 +64,12 @@ public class DoorOpeningMethod : MonoBehaviour
         {
             Lock();
         }
+
+        AdditionalUpdate();
+    }
+
+    public virtual void AdditionalUpdate()
+    {
+
     }
 }
