@@ -67,7 +67,15 @@ public class PlayerMovController : MonoBehaviour
     {
         controls.Player.Enable();
     }
+    public void EnableInput()
+    {
+        controls.Player.Enable();
+    }
     private void OnDisable()
+    {
+        controls.Player.Disable();
+    }
+    public void DisableInput()
     {
         controls.Player.Disable();
     }

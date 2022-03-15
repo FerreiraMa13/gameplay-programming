@@ -8,6 +8,7 @@ public class ButtonBehaviour : HitObject
     public bool pressed = false;
     public bool independent = false;
     public ButtonDoor buttonDoor = null;
+    public Cinematic_Behaviour cinematic;
 
     private void Awake()
     {
@@ -21,6 +22,10 @@ public class ButtonBehaviour : HitObject
     {
         pressed = !pressed;
         player.interact = false;
+        if(cinematic != null)
+        {
+            cinematic.SignalSTARTING();
+        }
     }
 
     public override void OnHitBehaviour()
