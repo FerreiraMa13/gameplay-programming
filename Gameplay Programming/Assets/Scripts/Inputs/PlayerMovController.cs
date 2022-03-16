@@ -35,9 +35,19 @@ public class PlayerMovController : MonoBehaviour
     public int number_jumps = 1;
     public int jump_attempts = 0;
 
-    bool attacking = false;
+    [System.NonSerialized]
+    public bool hit = false;
+    [System.NonSerialized]
+    public bool interact = false;
+
+    [System.NonSerialized]
+    public bool attacking = false;
     bool attacked = false;
     bool falling = false;
+
+    [System.NonSerialized]
+    public int interact_in_range = 0;
+    public float camera_sensitivity = 1.0f;
 
     Pick_Up.PowerUpEffects status_effect = Pick_Up.PowerUpEffects.NULL;
     float effect_timer = 0.0f;
@@ -50,15 +60,22 @@ public class PlayerMovController : MonoBehaviour
         animation_controller = GetComponentInChildren<AnimationStateController>();
         controls.Player.Move.performed += ctx => move = ctx.ReadValue<Vector2>();
         controls.Player.Move.canceled += ctx => move = Vector2.zero;
-
         controls.Player.Jump.started += ctx => Jump();
-        controls.Player.Attack.started += ctx => Attack();
+        controls.Player.Attack.started += ctx => AttackInteract();
     }
     private void OnEnable()
     {
         controls.Player.Enable();
     }
+    public void EnableInput()
+    {
+        controls.Player.Enable();
+    }
     private void OnDisable()
+    {
+        controls.Player.Disable();
+    }
+    public void DisableInput()
     {
         controls.Player.Disable();
     }
@@ -193,8 +210,16 @@ public class PlayerMovController : MonoBehaviour
         {
             if (attacking && !attacked)
             {
-                animation_controller.triggerAttack();
-                attacked = true;
+                if(interact_in_range > 0)
+                {
+                    animation_controller.triggerInteract();
+                    attacked = true;
+                }
+                else
+                {
+                    animation_controller.triggerAttack();
+                    attacked = true;
+                }
             }
         }
     }
@@ -243,7 +268,7 @@ public class PlayerMovController : MonoBehaviour
             jump_attempts += 1;
         }
     }
-    private void Attack()
+    private void AttackInteract()
     {
         if(!jumping && !attacked && !falling && !landing)
         {
@@ -261,14 +286,18 @@ public class PlayerMovController : MonoBehaviour
         }
         return true;
     }
-    public void endAttack()
+    public void endInteraction()
     {
         attacking = false;
         attacked = false;
+        hit = false;
+        interact = false;
+        Debug.Log("END");
     }
     public void detectHit()
     {
-        Debug.Log("Hit");
+        if(interact_in_range > 0){ interact = true; }
+        else { hit = true; }
     }
     public void detectLand(bool status)
     {
