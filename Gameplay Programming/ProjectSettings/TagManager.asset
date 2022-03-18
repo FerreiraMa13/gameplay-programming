@@ -6,6 +6,10 @@ TagManager:
   tags:
   - CameraCollidable
   - PickUp
+  - PlayerCamera
+  - LockOn Camera
+  - LookAt Point
+  - CameraTargetGroup
   layers:
   - Default
   - TransparentFX
