@@ -13,15 +13,14 @@ public class TriggerBehaviour : MonoBehaviour
     /// Makes it so that leaving the trigger will activate it again.
     /// </summary>
     public bool pulseTrigger = false;
-    public List<TriggerDoor> triggerDoors;
+    /*public List<TriggerDoor> triggerDoors;*/
     /*public TriggerDoor triggerDoor = null;*/
     bool triggered = false;
     private void Awake()
     {
         if (!independent)
         {
-            triggerDoors.Clear();
-            triggerDoors.Add( GetComponentInParent<TriggerDoor>());
+
         }
     }
 
