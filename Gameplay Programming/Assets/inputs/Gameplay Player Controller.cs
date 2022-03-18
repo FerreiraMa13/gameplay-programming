@@ -62,15 +62,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""LockOn"",
-                    ""type"": ""Button"",
-                    ""id"": ""fd0e14bf-ad00-4a2b-ac41-6dbe31391d9f"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -280,28 +271,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Attack"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""3eec6e11-276e-4856-b9a3-8d2761e4c1fe"",
-                    ""path"": ""<Gamepad>/rightStickPress"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""LockOn"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""c8657874-f121-4528-8ed7-b86363411af3"",
-                    ""path"": ""<Keyboard>/q"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""LockOn"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -893,7 +862,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
         m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
-        m_Player_LockOn = m_Player.FindAction("LockOn", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -969,7 +937,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
     private readonly InputAction m_Player_Look;
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Attack;
-    private readonly InputAction m_Player_LockOn;
     public struct PlayerActions
     {
         private @GameplayPlayerController m_Wrapper;
@@ -978,7 +945,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
         public InputAction @Look => m_Wrapper.m_Player_Look;
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @Attack => m_Wrapper.m_Player_Attack;
-        public InputAction @LockOn => m_Wrapper.m_Player_LockOn;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1000,9 +966,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
                 @Attack.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAttack;
                 @Attack.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAttack;
                 @Attack.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAttack;
-                @LockOn.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLockOn;
-                @LockOn.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLockOn;
-                @LockOn.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLockOn;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -1019,9 +982,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
                 @Attack.started += instance.OnAttack;
                 @Attack.performed += instance.OnAttack;
                 @Attack.canceled += instance.OnAttack;
-                @LockOn.started += instance.OnLockOn;
-                @LockOn.performed += instance.OnLockOn;
-                @LockOn.canceled += instance.OnLockOn;
             }
         }
     }
@@ -1182,7 +1142,6 @@ public partial class @GameplayPlayerController : IInputActionCollection2, IDispo
         void OnLook(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
         void OnAttack(InputAction.CallbackContext context);
-        void OnLockOn(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
