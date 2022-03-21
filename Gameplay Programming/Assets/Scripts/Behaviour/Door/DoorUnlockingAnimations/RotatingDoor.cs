@@ -25,22 +25,14 @@ public class RotatingDoor : DoorAnimator
 
     public void SetUp()
     {
-        if (transformRelativeRotation)
-        {
-            pivotPoint = (transform.rotation).normalized * pivotPoint;
-        }
-
         pivotPoint.x = transform.position.x + pivotPoint.x;
         pivotPoint.y = transform.position.y + pivotPoint.y;
         pivotPoint.z = transform.position.z + pivotPoint.z;
-
-        
 
         hinge.transform.position = pivotPoint;
         hinge.transform.rotation = transform.rotation;
         hinge.transform.SetParent(transform.parent, true);
         transform.SetParent(hinge.transform, true);
-
         if(!openingForward)
         {
             openingMag = -1.0f;
@@ -52,7 +44,6 @@ public class RotatingDoor : DoorAnimator
                     if(transformRelativeRotation)
                     {
                         rotationVector = transform.up;
-                        maxRotation += hinge.transform.rotation.y;
                     }
                     else
                     {
@@ -65,7 +56,6 @@ public class RotatingDoor : DoorAnimator
                     if (transformRelativeRotation)
                     {
                         rotationVector = transform.right;
-                        maxRotation += hinge.transform.rotation.x;
                     }
                     else
                     {
@@ -78,7 +68,6 @@ public class RotatingDoor : DoorAnimator
                     if (transformRelativeRotation)
                     {
                         rotationVector = transform.forward;
-                        maxRotation += hinge.transform.rotation.z;
                     }
                     else
                     {

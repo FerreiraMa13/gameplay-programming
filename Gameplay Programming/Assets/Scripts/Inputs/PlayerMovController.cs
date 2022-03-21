@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 public class PlayerMovController : MonoBehaviour
 {
     AnimationStateController animation_controller;
+    PlayerCameraController camera_controller;
     CharacterController controller;
     GameplayPlayerController controls;
     public GameObject SpeedBoostParticles;
@@ -55,6 +56,7 @@ public class PlayerMovController : MonoBehaviour
 
     private void Awake()
     {
+        camera_controller = GetComponent<PlayerCameraController>();
         controls = new GameplayPlayerController();
         controller = GetComponent<CharacterController>();
         animation_controller = GetComponentInChildren<AnimationStateController>();
@@ -62,6 +64,7 @@ public class PlayerMovController : MonoBehaviour
         controls.Player.Move.canceled += ctx => move = Vector2.zero;
         controls.Player.Jump.started += ctx => Jump();
         controls.Player.Attack.started += ctx => AttackInteract();
+        controls.Player.LockOn.started += ctx => AttemptLock();
     }
     private void OnEnable()
     {
@@ -104,6 +107,8 @@ public class PlayerMovController : MonoBehaviour
     }
     private void HandleMovement()
     {
+        if(!camera_controller.lock_on)
+        {
             Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
             speed_multiplier = 0.5f + 2 * input_direction.magnitude;
             input_direction.Normalize();
@@ -119,12 +124,35 @@ public class PlayerMovController : MonoBehaviour
             }
             movement.y = jump_velocity;
             controller.Move(movement * Time.deltaTime);
+        }
+        else
+        {
+            Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
+            speed_multiplier = (0.5f + 2 * input_direction.magnitude) * 0.8f;
+            input_direction.Normalize();
+            float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + cam_transform.eulerAngles.y;
+            float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
+            transform.rotation = Quaternion.Euler(0.0f, cam_transform.eulerAngles.y, 0.0f);
+            Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
+            Vector3 movement = Vector3.zero;
+            movement = camForward * speed * speed_multiplier * speed_boost;
+            if ((!Compare2Deadzone(move.x) && !Compare2Deadzone(move.y)) || landing)
+            {
+                movement = Vector3.zero;
+            }
+            movement.y = jump_velocity;
+            controller.Move(movement * Time.deltaTime);
+        }
     }
     private void HandleAnimations()
     {
         if (!jumping)
         {
             Vector3 input_direction = new(move.x, 0.0f, move.y);
+            if(camera_controller.lock_on)
+            {
+                input_direction = 0.5f * input_direction;
+            }
             animation_controller.updateMovement(input_direction.magnitude);
         }
         if (status_effect == Pick_Up.PowerUpEffects.SPEED_BOOST)
@@ -263,6 +291,11 @@ public class PlayerMovController : MonoBehaviour
 
             jump_attempts += 1;
         }
+
+        if(camera_controller.lock_on)
+        {
+            camera_controller.LockOn();
+        }
     }
     private void AttackInteract()
     {
@@ -312,6 +345,14 @@ public class PlayerMovController : MonoBehaviour
         {
             Debug.Log("Player targetted, but not affected");
             return false;
+        }
+    }
+
+    private void AttemptLock()
+    {
+        if(!jumping && !landing && !attacking)
+        {
+            camera_controller.LockOn();
         }
     }
 }
