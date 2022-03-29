@@ -122,7 +122,6 @@ public class BezierSpline : MonoBehaviour
 			}
 		}
 	}
-
 	public Vector3 GetPoint(float t)
 	{
 		int i;
@@ -171,7 +170,6 @@ public class BezierSpline : MonoBehaviour
 	{
 		return modes[(index + 1) / 3];
 	}
-
 	public void SetControlPoint(int index, Vector3 point)
 	{
 		if (index % 3 == 0)
@@ -226,6 +224,5 @@ public class BezierSpline : MonoBehaviour
 		}
 		EnforceMode(index);
 	}
-
 }
 

@@ -8,7 +8,8 @@ public class SplineFollower : MonoBehaviour
     { 
         NONE = 0,
         AUTO = 1,
-        INDEPENDENT = 2
+        INDEPENDENT = 2,
+        SYNCHRONISED = 3
     }
     public BezierSpline spline;
     public SplineFollowerMode movementMode = SplineFollowerMode.NONE;
@@ -16,17 +17,29 @@ public class SplineFollower : MonoBehaviour
     /*[System.NonSerialized]*/
     public bool active = true;
     [System.NonSerialized]
-    public Vector3 movementVector = Vector3.zero;
+    PlayerMovController player;
+
+    [Header("Auto Movement")]
     public float timeTaken = 10.0f;
     float timeStep;
     float progress = 0.0f;
-    float moveDirection = 1.0f;
 
+    [System.NonSerialized]
+    public Vector3 movementVector = Vector3.zero;
+    float moveDirection = 1.0f;
 
     private void OnValidate()
     {
         timeStep = 1 / timeTaken;
         valid = (spline != null);
+        if(player != null)
+        {
+            player.restricted = active;
+        }
+    }
+    private void Awake()
+    {
+        player = gameObject.GetComponent<PlayerMovController>();
     }
     private void Update()
     {
@@ -75,17 +88,46 @@ public class SplineFollower : MonoBehaviour
     }
     private void IndependentMove()
     {
-        progress += movementVector.magnitude;
-        if(progress > 1)
+        if(player != null)
         {
-            progress = 1;
-            active = false;
+            movementVector = new Vector3(player.move.x, 0.0f, player.move.y);
         }
-        if(progress < 0)
+        if(movementVector.x > 0)
         {
-            progress = 0;
-            active = false;
+            moveDirection = 1.0f;
         }
-        transform.rotation = Quaternion.Euler(spline.GetDirection(progress));
+        else if(movementVector.x < 0)
+        {
+            moveDirection = -1.0f;
+        }
+
+        /*Vector3 new_pos = new Vector3(spline.GetPoint(progress).x, transform.position.y, spline.GetPoint(progress).z);
+        transform.position = new_pos;*/
+
+        /*Vector3 spline_direction = spline.GetDirection(progress);
+        float rotateAngle = Mathf.Atan2(spline_direction.x, spline_direction.z) * Mathf.Rad2Deg + transform.rotation.y;
+        float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
+        if(moveDirection < 0 && smoothAngle > 0)
+        {
+            smoothAngle = smoothAngle * -1.0f;
+        }
+        transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f) ;*/
+
+        if (player.ApproachPoint(spline.GetPoint(progress)))
+        {
+            progress += movementVector.magnitude  * moveDirection * player.speed * timeStep * Time.deltaTime;
+            if (progress > 1)
+            {
+                progress = 1;
+                /*active = false;
+                player.restricted = false;*/
+            }
+            if (progress < 0)
+            {
+                progress = 0;
+                /*active = false;
+                player.restricted = false;*/
+            }
+        }
     }
 }

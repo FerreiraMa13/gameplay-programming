@@ -6,6 +6,11 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovController : MonoBehaviour
 {
+    enum MOVEMENT_TYPE
+    {
+        FREE = 0,
+        TOWARDS = 1
+    }
     AnimationStateController animation_controller;
     PlayerCameraController camera_controller;
     CharacterController controller;
@@ -15,7 +20,8 @@ public class PlayerMovController : MonoBehaviour
     public GameObject ParticleSpawnPoint;
     GameObject target_particles;
     bool particles_deployed = false;
-    Vector2 move;
+    [System.NonSerialized]
+    public Vector2 move;
     public float speed = 10.0f;
     [System.NonSerialized]
     public float speed_multiplier = 1.0f;
@@ -53,7 +59,11 @@ public class PlayerMovController : MonoBehaviour
     Pick_Up.PowerUpEffects status_effect = Pick_Up.PowerUpEffects.NULL;
     float effect_timer = 0.0f;
 
+    [System.NonSerialized]
+    public bool restricted = false;
 
+    MOVEMENT_TYPE movement_type = MOVEMENT_TYPE.FREE;
+    Vector3 towards = Vector3.zero;
     private void Awake()
     {
         camera_controller = GetComponent<PlayerCameraController>();
@@ -96,7 +106,15 @@ public class PlayerMovController : MonoBehaviour
         HandleAttack();
         if (!attacking)
         {
-            HandleMovement();
+            if(!restricted)
+            {
+                HandleMovement();
+            }
+            else
+            {
+                MoveTowards(towards);
+            }
+            
             HandleJump();
         }
     }
@@ -107,25 +125,16 @@ public class PlayerMovController : MonoBehaviour
     }
     private void HandleMovement()
     {
-        if(!camera_controller.lock_on)
-        {
-            Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
-            speed_multiplier = 0.5f + 2 * input_direction.magnitude;
-            input_direction.Normalize();
-            float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + cam_transform.eulerAngles.y;
-            float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
-            transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
-            Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
-            Vector3 movement = Vector3.zero;
-            movement = camForward * speed * speed_multiplier * speed_boost;
-            if ((!Compare2Deadzone(move.x) && !Compare2Deadzone(move.y)) || landing)
-            {
-                movement = Vector3.zero;
-            }
-            movement.y = jump_velocity;
-            controller.Move(movement * Time.deltaTime);
-        }
-        else
+
+        Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
+        Vector3 rotate = RotateCalc(input_direction, cam_transform.eulerAngles.y);
+        Vector3 movement = XZMoveCalc(rotate, input_direction);
+
+        movement.y = jump_velocity;
+
+        controller.Move(movement * Time.deltaTime);
+
+        /*else
         {
             Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
             speed_multiplier = (0.5f + 2 * input_direction.magnitude) * 0.8f;
@@ -142,14 +151,14 @@ public class PlayerMovController : MonoBehaviour
             }
             movement.y = jump_velocity;
             controller.Move(movement * Time.deltaTime);
-        }
+        }*/
     }
     private void HandleAnimations()
     {
         if (!jumping)
         {
             Vector3 input_direction = new(move.x, 0.0f, move.y);
-            if(camera_controller.lock_on)
+            if(camera_controller.lock_on || restricted)
             {
                 input_direction = 0.5f * input_direction;
             }
@@ -347,12 +356,67 @@ public class PlayerMovController : MonoBehaviour
             return false;
         }
     }
-
     private void AttemptLock()
     {
         if(!jumping && !landing && !attacking)
         {
             camera_controller.LockOn();
         }
+    }
+    public bool ApproachPoint(Vector3 destination)
+    {
+        movement_type = MOVEMENT_TYPE.TOWARDS;
+        towards = destination;
+        return (Vector3.Distance(transform.position, destination) < speed * 0.9f);
+    }
+    public void MoveTowards(Vector3 destination)
+    {
+
+        /*if (offset.magnitude > speed * speed_boost * speed_multiplier * 0.5f)
+        {
+            speed_multiplier = 0.5f + 2 * input_direction.magnitude;
+            if(input_direction.magnitude < 0)
+            {
+                speed_multiplier = speed_multiplier * -1.0f;
+            }
+            offset = offset.normalized * speed * speed_multiplier;
+            controller.Move(offset * Time.deltaTime);
+        }*/
+        var offset = destination - transform.position;
+        Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
+        Vector3 rotate = RotateCalc(offset, destination.y);
+        Vector3 movement = XZMoveCalc(rotate, input_direction);
+
+        movement.y = jump_velocity;
+
+        controller.Move(movement * Time.deltaTime);
+    }
+    private Vector3 RotateCalc(Vector3 input_direction, float anchor_rotation)
+    {
+        
+        input_direction.Normalize();
+        float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + anchor_rotation;
+        float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
+        transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
+
+        return new Vector3(0.0f, rotateAngle, 0.0f);
+    }
+    private Vector3 XZMoveCalc(Vector3 direction, Vector3 input)
+    {
+
+        speed_multiplier = 0.5f + 2 * input.magnitude;
+        if (camera_controller.lock_on)
+        {
+            speed_multiplier = speed_multiplier * 0.8f;
+        }
+        Vector3 forward = Quaternion.Euler(direction).normalized * Vector3.forward;
+        Vector3 movement = forward * speed * speed_multiplier * speed_boost;
+        if ((!Compare2Deadzone(move.x) && !Compare2Deadzone(move.y)) || landing)
+        {
+            movement = Vector3.zero;
+        }
+        /*movement.y = Vector3.zero.y;
+*/
+        return movement;
     }
 }
