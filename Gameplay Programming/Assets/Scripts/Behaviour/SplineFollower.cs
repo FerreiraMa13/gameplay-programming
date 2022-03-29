@@ -18,15 +18,21 @@ public class SplineFollower : MonoBehaviour
     public bool active = true;
     [System.NonSerialized]
     PlayerMovController player;
+    [System.NonSerialized]
+    public float progress = 0.0f;
 
     [Header("Auto Movement")]
     public float timeTaken = 10.0f;
     float timeStep;
-    float progress = 0.0f;
 
     [System.NonSerialized]
     public Vector3 movementVector = Vector3.zero;
     float moveDirection = 1.0f;
+
+    [Header("Synchonised Movement")]
+    public SplineFollower coordenator;
+    [System.NonSerialized]
+    public float synched_progress = 0.0f;
 
     private void OnValidate()
     {
@@ -45,30 +51,67 @@ public class SplineFollower : MonoBehaviour
     {
         if(valid && active)
         {
-            Move();
+            StandardMove();
         }
     }
-    private void Move()
+    private void FixedUpdate()
+    {
+        if (valid && active)
+        {
+            FixedMove();
+        }
+    }
+    private void StandardMove()
     {
         if (valid)
         {
-            switch(movementMode)
+            if(active)
             {
-                case (SplineFollowerMode.AUTO):
+                switch (movementMode)
                 {
-                        AutoMove();
-                        break;
-                }
-                case (SplineFollowerMode.INDEPENDENT):
-                {
-                        if(active)
+
+                    case (SplineFollowerMode.INDEPENDENT):
                         {
-                            IndependentMove();
+                            if (active)
+                            {
+                                IndependentMove();
+                            }
+                            break;
                         }
-                        break;
+                    case (SplineFollowerMode.AUTO):
+                        {
+                            AutoMove();
+                            break;
+                        }
+                    case (SplineFollowerMode.SYNCHRONISED):
+                        {
+                            SynchMove();
+                            break;
+                        }
                 }
             }
-            
+        }
+    }
+    private void FixedMove()
+    {
+        if (valid)
+        {
+            if (active)
+            {
+                switch (movementMode)
+                {
+                    /*case (SplineFollowerMode.AUTO):
+                        {
+                            AutoMove();
+                            break;
+                        }
+                    case (SplineFollowerMode.SYNCHRONISED):
+                        {
+                            SynchMove();
+                            break;
+                        }*/
+                }
+            }
         }
     }
     private void AutoMove()
@@ -86,6 +129,16 @@ public class SplineFollower : MonoBehaviour
         }
         transform.position = spline.GetPoint(progress);
     }
+    private void SynchMove()
+    {
+        synched_progress = coordenator.progress;
+        progress = synched_progress;
+
+        if (progress > 1) { progress = 1; }else if(progress < 0) { progress = 0; }
+
+        Vector3 lerp_pos = Vector3.Slerp(transform.position, spline.GetPoint(progress), 2f);
+        transform.position = lerp_pos;
+    }
     private void IndependentMove()
     {
         if(player != null)
@@ -101,32 +154,16 @@ public class SplineFollower : MonoBehaviour
             moveDirection = -1.0f;
         }
 
-        /*Vector3 new_pos = new Vector3(spline.GetPoint(progress).x, transform.position.y, spline.GetPoint(progress).z);
-        transform.position = new_pos;*/
-
-        /*Vector3 spline_direction = spline.GetDirection(progress);
-        float rotateAngle = Mathf.Atan2(spline_direction.x, spline_direction.z) * Mathf.Rad2Deg + transform.rotation.y;
-        float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
-        if(moveDirection < 0 && smoothAngle > 0)
-        {
-            smoothAngle = smoothAngle * -1.0f;
-        }
-        transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f) ;*/
-
         if (player.ApproachPoint(spline.GetPoint(progress)))
         {
             progress += movementVector.magnitude  * moveDirection * player.speed * timeStep * Time.deltaTime;
             if (progress > 1)
             {
                 progress = 1;
-                /*active = false;
-                player.restricted = false;*/
             }
             if (progress < 0)
             {
                 progress = 0;
-                /*active = false;
-                player.restricted = false;*/
             }
         }
     }

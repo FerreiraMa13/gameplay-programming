@@ -8,7 +8,8 @@ public class SplineBoundTrigger : MonoBehaviour
     PlayerMovController p_controller;
     GameObject player;
     public Cinemachine.CinemachineVirtualCameraBase og_camera;
-
+    [Range(0, 1)]
+    public int spline_end = 0;
     private void Awake()
     {
         player = GameObject.FindGameObjectWithTag("Player");
@@ -24,6 +25,7 @@ public class SplineBoundTrigger : MonoBehaviour
                 og_camera.Priority = 9;
                 new_camera.Priority = 10;
                 player.GetComponent<SplineFollower>().active = true;
+                player.GetComponent<SplineFollower>().progress = spline_end;
             }
             else
             {
@@ -34,4 +36,6 @@ public class SplineBoundTrigger : MonoBehaviour
             }
         }
     }
+
+
 }
