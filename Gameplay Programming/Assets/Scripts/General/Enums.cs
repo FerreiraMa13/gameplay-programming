@@ -19,4 +19,11 @@ public class Enums : MonoBehaviour
         YAXIS = 2,
         ZAXIS = 3
     }
+
+    public enum BezierControlPointMode
+    {
+        Free,
+        Aligned,
+        Mirrored
+    }
 }

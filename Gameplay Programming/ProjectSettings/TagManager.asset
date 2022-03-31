@@ -10,6 +10,7 @@ TagManager:
   - LockOn Camera
   - LookAt Point
   - CameraTargetGroup
+  - WrapPoint
   layers:
   - Default
   - TransparentFX
