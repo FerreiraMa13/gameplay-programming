@@ -61,8 +61,9 @@ public class PlayerMovController : MonoBehaviour
 
     [System.NonSerialized]
     public bool restricted = false;
+    public Vector3 respawn_point = Vector3.zero;
 
-    MOVEMENT_TYPE movement_type = MOVEMENT_TYPE.FREE;
+    /*MOVEMENT_TYPE movement_type = MOVEMENT_TYPE.FREE;*/
     Vector3 towards = Vector3.zero;
     private void Awake()
     {
@@ -133,25 +134,6 @@ public class PlayerMovController : MonoBehaviour
         movement.y = jump_velocity;
 
         controller.Move(movement * Time.deltaTime);
-
-        /*else
-        {
-            Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
-            speed_multiplier = (0.5f + 2 * input_direction.magnitude) * 0.8f;
-            input_direction.Normalize();
-            float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + cam_transform.eulerAngles.y;
-            float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
-            transform.rotation = Quaternion.Euler(0.0f, cam_transform.eulerAngles.y, 0.0f);
-            Vector3 camForward = Quaternion.Euler(0.0f, rotateAngle, 0.0f).normalized * Vector3.forward;
-            Vector3 movement = Vector3.zero;
-            movement = camForward * speed * speed_multiplier * speed_boost;
-            if ((!Compare2Deadzone(move.x) && !Compare2Deadzone(move.y)) || landing)
-            {
-                movement = Vector3.zero;
-            }
-            movement.y = jump_velocity;
-            controller.Move(movement * Time.deltaTime);
-        }*/
     }
     private void HandleAnimations()
     {
@@ -365,7 +347,7 @@ public class PlayerMovController : MonoBehaviour
     }
     public bool ApproachPoint(Vector3 destination)
     {
-        movement_type = MOVEMENT_TYPE.TOWARDS;
+        /*movement_type = MOVEMENT_TYPE.TOWARDS;*/
         towards = destination;
         return (Vector3.Distance(transform.position, destination) < speed * 0.9f);
     }
@@ -418,5 +400,13 @@ public class PlayerMovController : MonoBehaviour
         /*movement.y = Vector3.zero.y;
 */
         return movement;
+    }
+    public void ResetGravPull()
+    {
+        additional_decay = 0;
+        jump_velocity = 0;
+        controller.enabled = false;
+        transform.position = respawn_point;
+        controller.enabled = true;
     }
 }

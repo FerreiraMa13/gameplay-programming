@@ -29,7 +29,6 @@ public class BezierMath : MonoBehaviour
 			3f * minusT * t * t * p2 +
 			t * t * t * p3;
 	}
-
 	public static Vector3 GetFirstDerivative(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
 	{
 		t = Mathf.Clamp01(t);
@@ -39,4 +38,10 @@ public class BezierMath : MonoBehaviour
 			6f * minusT * t * (p2 - p1) +
 			3f * t * t * (p3 - p2);
 	}
+	public static Vector3 GetProgress(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 point)
+    {
+		//(Vector)(whatever) + (Vector2)(morewhatever) + (Vector3)(evenmorewhatever) = A Point,
+		//then vector.x(whatever) + vector2.x(whatever) + vector3.x(whatever) = point.x
+		return Vector3.zero;
+    }
 }

@@ -98,9 +98,9 @@ public class SplineFollower : MonoBehaviour
         {
             if (active)
             {
-                switch (movementMode)
+                /*switch (movementMode)
                 {
-                    /*case (SplineFollowerMode.AUTO):
+                   case (SplineFollowerMode.AUTO):
                         {
                             AutoMove();
                             break;
@@ -109,8 +109,8 @@ public class SplineFollower : MonoBehaviour
                         {
                             SynchMove();
                             break;
-                        }*/
-                }
+                        }
+                }*/
             }
         }
     }
