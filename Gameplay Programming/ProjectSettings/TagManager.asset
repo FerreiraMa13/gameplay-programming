@@ -11,6 +11,7 @@ TagManager:
   - LookAt Point
   - CameraTargetGroup
   - WrapPoint
+  - Floatable
   layers:
   - Default
   - TransparentFX

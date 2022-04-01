@@ -59,6 +59,10 @@ public class SlidingDoor : DoorAnimator
             transform.position = destinationPoint;
             status = DoorStatus.OPEN;
             Debug.Log("Open");
+            if(GetComponent<Movement>())
+            {
+                GetComponent<Movement>().center = transform.position;
+            }
         }
     }
     public override void ClosingMovement()

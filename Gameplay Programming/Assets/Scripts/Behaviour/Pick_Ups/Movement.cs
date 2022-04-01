@@ -24,8 +24,8 @@ public class Movement : MonoBehaviour
     /// Second point of movement for the object. Only used by LINEAR movement.
     /// </summary>
     public Vector3 point2;
-
-    Vector3 center;
+    [System.NonSerialized]
+    public Vector3 center;
 
     Vector3 target;
 

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class pu_Infinite : Pick_Up
 {
-    [System.NonSerialized]
-    new public PowerUpType type = PowerUpType.ETERNAL;
+    private void Awake()
+    {
+        type = PowerUpType.ETERNAL;
+    }
 }

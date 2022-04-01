@@ -18,21 +18,31 @@ public class SplineFollower : MonoBehaviour
     public bool active = true;
     [System.NonSerialized]
     PlayerMovController player;
-    [System.NonSerialized]
+    /*[System.NonSerialized]*/
     public float progress = 0.0f;
+    public bool requiresPlayer = false;
 
     [Header("Auto Movement")]
     public float timeTaken = 10.0f;
-    float timeStep;
-
+    public bool adjustRotation = false;
+    public bool backAndForth = true;
+    
     [System.NonSerialized]
     public Vector3 movementVector = Vector3.zero;
+    public float turn_smooth_time = 0.1f;
+    private float turn_smooth_velocity;
     float moveDirection = 1.0f;
+    float timeStep;
+    public Enums.Axis[] ignoreAxis;
 
     [Header("Synchonised Movement")]
     public SplineFollower coordenator;
     [System.NonSerialized]
     public float synched_progress = 0.0f;
+    private Vector3 base_rotation;
+
+    InteractionReceiver receiver;
+    HoldPlayer holdPlayer;
 
     private void OnValidate()
     {
@@ -42,23 +52,28 @@ public class SplineFollower : MonoBehaviour
         {
             player.restricted = active;
         }
+        if(adjustRotation)
+        {
+            base_rotation = transform.rotation.eulerAngles;
+        }
     }
     private void Awake()
     {
         player = gameObject.GetComponent<PlayerMovController>();
+        receiver = GetComponent<InteractionReceiver>();
+        holdPlayer = GetComponent<HoldPlayer>();
     }
     private void Update()
     {
-        if(valid && active)
-        {
-            StandardMove();
-        }
+        valid = isValid();
     }
     private void FixedUpdate()
     {
         if (valid && active)
         {
-            FixedMove();
+
+                StandardMove();
+                FixedMove();
         }
     }
     private void StandardMove()
@@ -117,17 +132,37 @@ public class SplineFollower : MonoBehaviour
     private void AutoMove()
     {
         progress += moveDirection * timeStep * Time.deltaTime;
-        if (progress > 1)
+        if(backAndForth)
         {
-            progress = 1;
-            moveDirection = moveDirection * -1.0f;
+            if (progress > 1)
+            {
+                progress = 1;
+                moveDirection = moveDirection * -1.0f;
+            }
+            else if (progress < 0)
+            {
+                progress = 0;
+                moveDirection = moveDirection * -1.0f;
+            }
         }
-        else if (progress < 0)
+        else
         {
-            progress = 0;
-            moveDirection = moveDirection * -1.0f;
+            if(spline.Loop)
+            {
+                if (progress >= 1)
+                {
+                    progress = 0;
+                }
+            }
+            
         }
-        transform.position = spline.GetPoint(progress);
+        
+        if (adjustRotation)
+        {
+            transform.rotation =  Quaternion.Euler(spline.GetDirection(progress) + base_rotation);
+        }
+
+        transform.position = SanitizeAxis(spline.GetPoint(progress));
     }
     private void SynchMove()
     {
@@ -166,5 +201,61 @@ public class SplineFollower : MonoBehaviour
                 progress = 0;
             }
         }
+    }
+    private bool ValidateAxis(Enums.Axis axis)
+    {
+        foreach(Enums.Axis enum_axis in ignoreAxis)
+        {
+            if(enum_axis == axis)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    private Vector3 SanitizeAxis( Vector3 direction)
+    {
+        Vector3 new_direction = Vector3.zero;
+        if(ValidateAxis(Enums.Axis.XAXIS))
+        {
+            new_direction.x = direction.x;
+        }
+        if(ValidateAxis(Enums.Axis.YAXIS))
+        {
+            new_direction.y = direction.y;
+        }
+        if(ValidateAxis(Enums.Axis.ZAXIS))
+        {
+            new_direction.z = direction.z;
+        }
+        return new_direction;
+    }
+    private Vector3 RotateCalc(Vector3 input_direction, float anchor_rotation)
+    {
+
+        input_direction.Normalize();
+        float rotateAngle = Mathf.Atan2(input_direction.x, input_direction.z) * Mathf.Rad2Deg + anchor_rotation;
+        float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, rotateAngle, ref turn_smooth_velocity, turn_smooth_time);
+        transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
+
+        return new Vector3(0.0f, rotateAngle, 0.0f);
+    }
+    private bool isValid()
+    {
+        if(receiver != null)
+        {
+            if(!receiver.active || !receiver.signal)
+            {
+                return false;
+            }
+        }
+        if(requiresPlayer)
+        {
+            if(!holdPlayer.isHoldingPlayer())
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
