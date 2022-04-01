@@ -36,15 +36,23 @@ public class Pick_Up : MonoBehaviour
     {
         if(!active)
         {
-            if(type != PowerUpType.SPAWN)
+            if(type != PowerUpType.SPAWN && type != PowerUpType.ETERNAL)
             {
-                Destroy(gameObject);
+                /*Destroy(gameObject);*/
             }
         }
     }
     private void OnTriggerEnter(Collider other)
     {
         if(other .CompareTag("Player"))
+        {
+            player = other.gameObject;
+            PickUp();
+        }
+    }
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.CompareTag("Player"))
         {
             player = other.gameObject;
             PickUp();
@@ -59,7 +67,6 @@ public class Pick_Up : MonoBehaviour
                 Instantiate(particles, transform.position, transform.rotation);
                 particles_used = true;
             }
-
             if (type != PowerUpType.ETERNAL)
             {
                 active = false;
@@ -76,7 +83,6 @@ public class Pick_Up : MonoBehaviour
     public void ActivateEffect()
     {
         player.GetComponent<PlayerMovController>().affectPlayer(powerUpEffect, duration);
-        Debug.Log("Effect Activated");
     }
 
 }

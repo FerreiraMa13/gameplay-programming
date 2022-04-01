@@ -27,12 +27,13 @@ public class PlayerMovController : MonoBehaviour
     public float speed_multiplier = 1.0f;
     public float speed_boost = 1.0f;
     public float deadzone = 0.1F;
-    public float turn_smooth_time = 0.1f;
+    
     public Transform cam_transform;
+    public float turn_smooth_time = 0.1f;
     private float turn_smooth_velocity;
 
-    bool jumping = false;
-    bool landing = false;
+    public bool jumping = false;
+    public bool landing = false;
     public float jump_force = 10.0f;
     private float jump_velocity = 0.0f;
     public float gravity = 9.8f;
@@ -50,7 +51,7 @@ public class PlayerMovController : MonoBehaviour
     [System.NonSerialized]
     public bool attacking = false;
     bool attacked = false;
-    bool falling = false;
+    public bool falling = false;
 
     [System.NonSerialized]
     public int interact_in_range = 0;
@@ -159,14 +160,14 @@ public class PlayerMovController : MonoBehaviour
     {
         if (controller.isGrounded)
         {
-            if (jumping && jump_velocity < 0.0f)
+            if (jumping && jump_velocity <= -0.5f)
             {
                 jumping = false;
                 animation_controller.triggerLand();
                 additional_decay = 0.0f;
                 jump_attempts = 0;
             }
-            else if (falling && jump_velocity < 0.0f)
+            else if (falling)
             {
                 falling = false;
                 animation_controller.triggerLand();
@@ -325,16 +326,15 @@ public class PlayerMovController : MonoBehaviour
     }
     public bool affectPlayer(Pick_Up.PowerUpEffects effect, float duration)
     {
-        if(status_effect == Pick_Up.PowerUpEffects.NULL)
+        effect_timer = duration;
+        if (status_effect == Pick_Up.PowerUpEffects.NULL)
         {
             status_effect = effect;
             effect_timer = duration;
-            Debug.Log("Player Affected");
             return true;
         }
         else
         {
-            Debug.Log("Player targetted, but not affected");
             return false;
         }
     }
@@ -347,23 +347,11 @@ public class PlayerMovController : MonoBehaviour
     }
     public bool ApproachPoint(Vector3 destination)
     {
-        /*movement_type = MOVEMENT_TYPE.TOWARDS;*/
         towards = destination;
         return (Vector3.Distance(transform.position, destination) < speed * 0.9f);
     }
     public void MoveTowards(Vector3 destination)
     {
-
-        /*if (offset.magnitude > speed * speed_boost * speed_multiplier * 0.5f)
-        {
-            speed_multiplier = 0.5f + 2 * input_direction.magnitude;
-            if(input_direction.magnitude < 0)
-            {
-                speed_multiplier = speed_multiplier * -1.0f;
-            }
-            offset = offset.normalized * speed * speed_multiplier;
-            controller.Move(offset * Time.deltaTime);
-        }*/
         var offset = destination - transform.position;
         Vector3 input_direction = new Vector3(move.x, 0.0f, move.y);
         Vector3 rotate = RotateCalc(offset, destination.y);
@@ -397,8 +385,6 @@ public class PlayerMovController : MonoBehaviour
         {
             movement = Vector3.zero;
         }
-        /*movement.y = Vector3.zero.y;
-*/
         return movement;
     }
     public void ResetGravPull()
