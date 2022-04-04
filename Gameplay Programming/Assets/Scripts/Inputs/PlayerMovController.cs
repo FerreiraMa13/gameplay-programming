@@ -27,7 +27,10 @@ public class PlayerMovController : MonoBehaviour
     public float speed_multiplier = 1.0f;
     public float speed_boost = 1.0f;
     public float deadzone = 0.1F;
-    
+
+    public float damage = 2.5f;
+    public float attack_range = 2.5f;
+
     public Transform cam_transform;
     public float turn_smooth_time = 0.1f;
     private float turn_smooth_velocity;
@@ -64,8 +67,8 @@ public class PlayerMovController : MonoBehaviour
     public bool restricted = false;
     public Vector3 respawn_point = Vector3.zero;
 
-    /*MOVEMENT_TYPE movement_type = MOVEMENT_TYPE.FREE;*/
     Vector3 towards = Vector3.zero;
+
     private void Awake()
     {
         camera_controller = GetComponent<PlayerCameraController>();
@@ -316,7 +319,10 @@ public class PlayerMovController : MonoBehaviour
     public void detectHit()
     {
         if(interact_in_range > 0){ interact = true; }
-        else { hit = true; }
+        else 
+        { 
+            hit = true; 
+        }
     }
     public void detectLand(bool status)
     {
