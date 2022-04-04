@@ -106,19 +106,17 @@ public class PlayerMovController : MonoBehaviour
     {
         HandleEffects();
         HandleAttack();
-        if (!attacking)
+
+        if (!restricted)
         {
-            if(!restricted)
-            {
-                HandleMovement();
-            }
-            else
-            {
-                MoveTowards(towards);
-            }
-            
-            HandleJump();
+            HandleMovement();
         }
+        else
+        {
+            MoveTowards(towards);
+        }
+
+        HandleJump();
     }
     private void Update()
     {
