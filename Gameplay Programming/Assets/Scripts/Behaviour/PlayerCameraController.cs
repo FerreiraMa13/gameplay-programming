@@ -28,13 +28,6 @@ public class PlayerCameraController : MonoBehaviour
     {
         UpkeepLockOn();
     }
-    private void UpdateCamera()
-    {
-        if(cameras.Count >= camera_index)
-        {
-            controller.cam_transform = cameras[camera_index].transform;
-        }
-    }
     public void UpdateCamera(int new_index)
     {
         camera_index = new_index;

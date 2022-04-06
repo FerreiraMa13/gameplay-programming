@@ -14,11 +14,12 @@ public class SplineFollower : MonoBehaviour
     public BezierSpline spline;
     public SplineFollowerMode movementMode = SplineFollowerMode.NONE;
     bool valid = false;
-    /*[System.NonSerialized]*/
     public bool active = true;
     [System.NonSerialized]
     PlayerMovController player;
-    /*[System.NonSerialized]*/
+    [Range(0,1)]
+    public float starting_progress = 0.0f;
+    [System.NonSerialized]
     public float progress = 0.0f;
     public bool requiresPlayer = false;
 
@@ -43,6 +44,7 @@ public class SplineFollower : MonoBehaviour
 
     InteractionReceiver receiver;
     HoldPlayer holdPlayer;
+    bool running = false;
 
     private void OnValidate()
     {
@@ -56,12 +58,18 @@ public class SplineFollower : MonoBehaviour
         {
             base_rotation = transform.rotation.eulerAngles;
         }
+        if (spline != null && !running && active)
+        {
+            transform.position = spline.GetPoint(starting_progress);
+            progress = starting_progress;
+        }
     }
     private void Awake()
     {
         player = gameObject.GetComponent<PlayerMovController>();
         receiver = GetComponent<InteractionReceiver>();
         holdPlayer = GetComponent<HoldPlayer>();
+        running = true;
     }
     private void Update()
     {

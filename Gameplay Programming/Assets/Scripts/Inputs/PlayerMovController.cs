@@ -68,6 +68,7 @@ public class PlayerMovController : MonoBehaviour
     public Vector3 respawn_point = Vector3.zero;
 
     Vector3 towards = Vector3.zero;
+    public List<NPC_Controller> npc_contollers;
 
     private void Awake()
     {
@@ -314,14 +315,21 @@ public class PlayerMovController : MonoBehaviour
         attacked = false;
         hit = false;
         interact = false;
-        Debug.Log("END");
+        /*Debug.Log("END");*/
     }
     public void detectHit()
     {
         if(interact_in_range > 0){ interact = true; }
         else 
         { 
-            hit = true; 
+            if(!hit)
+            {
+                foreach (NPC_Controller npc in npc_contollers)
+                {
+                    npc.TakeDamage(damage);
+                }
+                hit = true;
+            }
         }
     }
     public void detectLand(bool status)
@@ -399,4 +407,33 @@ public class PlayerMovController : MonoBehaviour
         transform.position = respawn_point;
         controller.enabled = true;
     }
+    public void AddNPC( NPC_Controller npc)
+    {
+        int npc_index = FindNPC(npc);
+        if(npc_index < 0)
+        {
+            npc_contollers.Add(npc);
+        }
+    }
+    public void RemoveNPC(NPC_Controller npc)
+    {
+        int npc_index = FindNPC(npc);
+        if (npc_index >= 0)
+        {
+            npc_contollers.Remove(npc);
+        }
+    }
+    private int FindNPC(NPC_Controller npc)
+    {
+        for(int i = 0; i < npc_contollers.Count; i++)
+        {
+            if(npc_contollers[i] == npc)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
 }

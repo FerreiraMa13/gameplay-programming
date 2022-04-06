@@ -61,7 +61,7 @@ public class AnimationStateController : MonoBehaviour
     }
     public void listenAttack(int status)
     {
-        Debug.Log(status);
+        /*Debug.Log(status);*/
         switch (status)
         {
             case (int)attackEvents.HIT:
