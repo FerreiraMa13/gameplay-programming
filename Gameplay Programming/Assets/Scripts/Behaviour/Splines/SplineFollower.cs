@@ -159,7 +159,7 @@ public class SplineFollower : MonoBehaviour
             {
                 if (progress >= 1)
                 {
-                    progress = 0;
+                    progress -= 1 ;
                 }
             }
             
@@ -167,7 +167,8 @@ public class SplineFollower : MonoBehaviour
         
         if (adjustRotation)
         {
-            transform.rotation =  Quaternion.Euler(spline.GetDirection(progress) + base_rotation);
+            RotateCalc(spline.GetDirection(progress), spline.GetPoint(progress).y);
+           /* transform.rotation = Quaternion.Euler(Vector3.Lerp(transform.rotation.eulerAngles, RotateCalc(spline.GetPoint(progress), transform.position.y), Time.deltaTime));*/
         }
 
         transform.position = SanitizeAxis(spline.GetPoint(progress));
@@ -223,7 +224,7 @@ public class SplineFollower : MonoBehaviour
     }
     private Vector3 SanitizeAxis( Vector3 direction)
     {
-        Vector3 new_direction = Vector3.zero;
+        Vector3 new_direction = transform.position;
         if(ValidateAxis(Enums.Axis.XAXIS))
         {
             new_direction.x = direction.x;

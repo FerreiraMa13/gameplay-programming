@@ -28,6 +28,7 @@ public class NPC_Controller : MonoBehaviour
     [System.NonSerialized] public bool line_of_sight;
     [System.NonSerialized] public bool damage_calc;
     [System.NonSerialized] public enemyState enemy_state;
+    [System.NonSerialized] public bool landed = true;
 
     private float reaction_timer = 0.0f;
     private float turn_smooth_velocity;
@@ -35,7 +36,13 @@ public class NPC_Controller : MonoBehaviour
     private Vector3 target_destination;
 
     PlayerMovController player_controller;
+    SlimeAnimatorController animator;
 
+    private void Awake()
+    {
+        enemy_state = default_state;
+        animator = GetComponentInChildren<SlimeAnimatorController>();
+    }
     private void OnValidate()
     {
         patrol_route = GetComponent<SplineFollower>();
@@ -55,6 +62,12 @@ public class NPC_Controller : MonoBehaviour
         {
             distance_from_target = -1;
             line_of_sight = false;
+        }
+
+        if (landed)
+        {
+            animator.triggerJump();
+            landed = false;
         }
     }
     private void FixedUpdate()
@@ -94,32 +107,6 @@ public class NPC_Controller : MonoBehaviour
     {
         return player_controller.hit && line_of_sight && (distance_from_target <= player_controller.attack_range + transform.localScale.x / 2 && distance_from_target > 0);
     }
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.tag == "Player")
-        {
-            player_controller = other.gameObject.GetComponent<PlayerMovController>();
-            player_controller.AddNPC(gameObject.GetComponent<NPC_Controller>());
-        }
-    }
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.tag == "Player")
-        {
-            player_controller = other.gameObject.GetComponent<PlayerMovController>();
-            player_controller.RemoveNPC(gameObject.GetComponent<NPC_Controller>());
-        }
-    }
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.gameObject.tag == "Player")
-        {
-            /*if(DamageConditions())
-            {
-                TakeDamage(player_controller.damage);
-            }*/
-        }
-    }
     private enemyState Move()
     {
         float dt = Time.deltaTime;
@@ -158,6 +145,18 @@ public class NPC_Controller : MonoBehaviour
     }
     private enemyState Patrol(float dt)
     {
+        if (player_controller != null)
+        {
+            if(patrol_route != null)
+            {
+                patrol_route.active = false;
+            }
+            return enemyState.CHASING;
+        }
+        if (patrol_route != null)
+        {
+            patrol_route.active = true;
+        }
         return enemyState.PATROLING;
     }
     private enemyState Roam(float dt)
@@ -210,5 +209,31 @@ public class NPC_Controller : MonoBehaviour
         Vector3 forward = Quaternion.Euler(direction).normalized * Vector3.forward;
         Vector3 movement = forward * movement_speed;
         return movement;
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Player")
+        {
+            player_controller = other.gameObject.GetComponent<PlayerMovController>();
+            player_controller.AddNPC(gameObject.GetComponent<NPC_Controller>());
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.tag == "Player")
+        {
+            player_controller = other.gameObject.GetComponent<PlayerMovController>();
+            player_controller.RemoveNPC(gameObject.GetComponent<NPC_Controller>());
+        }
+    }
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.tag == "Player")
+        {
+            /*if(DamageConditions())
+            {
+                TakeDamage(player_controller.damage);
+            }*/
+        }
     }
 }
