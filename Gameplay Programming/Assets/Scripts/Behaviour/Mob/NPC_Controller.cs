@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class NPC_Controller : MonoBehaviour
 {
@@ -24,6 +25,8 @@ public class NPC_Controller : MonoBehaviour
     public float reaction_speed = 2.0f;
     public float character_armor = 0.0f;
     public float give_up_time = 1.0f;
+    public Vector2 roaming_bounds_x = new Vector2(-5,5);
+    public Vector2 roaming_bounds_z = new Vector2(-5, 5);
 
     [System.NonSerialized] public float distance_from_target;
     [System.NonSerialized] public bool line_of_sight;
@@ -31,6 +34,7 @@ public class NPC_Controller : MonoBehaviour
     [System.NonSerialized] public enemyState enemy_state;
     [System.NonSerialized] public bool attacking = false;
     [System.NonSerialized] public float speed_muliplier = 1.0f;
+    /*[System.NonSerialized] */public Vector3 destination;
 
     private float reaction_timer = 0.0f;
     private float turn_smooth_velocity;
@@ -41,6 +45,7 @@ public class NPC_Controller : MonoBehaviour
     private float scale = 5.0f;
 
     protected PlayerMovController player_controller;
+
     /*protected int supports = 0;
     protected float additional_decay = 0.0f;
     protected float gravity = 9.8f;
@@ -55,6 +60,7 @@ public class NPC_Controller : MonoBehaviour
     private void OnValidate()
     {
         patrol_route = GetComponent<SplineFollower>();
+        
         if (default_state == enemyState.PATROLING && patrol_route != null)
         {
             this.transform.position = patrol_route.spline.GetPoint(0);
@@ -182,6 +188,19 @@ public class NPC_Controller : MonoBehaviour
     }
     private enemyState Roam(float dt)
     {
+        if(player_controller != null)
+        {
+            return enemyState.CHASING;
+        }
+        if (destination == Vector3.zero || GetSuppressedDistance(destination, Enums.Axis.YAXIS) < scale)
+        {
+            destination = Vector3.zero;
+            destination.x = Random.Range(roaming_bounds_x.x, roaming_bounds_x.y);
+            destination.z = Random.Range(roaming_bounds_z.x, roaming_bounds_z.y);
+            destination = transform.parent.position + destination;
+        }
+
+        MoveTowards(destination);
         return enemyState.ROAMING;
     }
     private enemyState Disengage(float dt)
@@ -232,14 +251,12 @@ public class NPC_Controller : MonoBehaviour
         var offset = destination - transform.position;
         Vector3 rotate = RotateCalc(offset, destination.y);
         Vector3 movement = XZMoveCalc(rotate);
-
         /*movement.y += gravity_pull;
         if (!ConditionalMove())
         {
             movement.x = 0.0f;
             movement.z = 0.0f;
         }*/
-
         Vector3 next_pos = transform.position + movement;
         transform.position = Vector3.Lerp(transform.position, next_pos, Time.deltaTime);
     }
@@ -259,6 +276,35 @@ public class NPC_Controller : MonoBehaviour
         Vector3 movement = forward * movement_speed * speed_muliplier;
         return movement;
     }
+
+    protected float GetSuppressedDistance(Vector3 c_vector, Enums.Axis axis)
+    {
+        Vector3 new_pos = transform.position;
+        Vector3 new_vector = c_vector;
+        switch (axis)
+        {
+            case (Enums.Axis.XAXIS):
+                {
+                    new_pos.x = 0;
+                    new_vector.x = 0;
+                    break;
+                }
+            case (Enums.Axis.YAXIS):
+                {
+                    new_pos.y = 0;
+                    new_vector.y = 0;
+                    break;
+                }
+            case (Enums.Axis.ZAXIS):
+                {
+                    new_pos.z = 0;
+                    new_vector.z = 0;
+                    break;
+                }
+        }
+        return Vector3.Distance(new_pos, new_vector);
+    }
+ 
     /*private void HandleGravity()
     {
         if (supports > 0)
@@ -272,7 +318,6 @@ public class NPC_Controller : MonoBehaviour
             additional_decay += (0.2f * Time.deltaTime);
         }
     }*/
-
     /*private void OnCollisionEnter(Collision collision)
     {
         if(collision.gameObject.tag == "Ground" && transform.position.y >= collision.transform.position.y)
@@ -328,4 +373,6 @@ public class NPC_Controller : MonoBehaviour
     {
         return true;
     }
+
+    
 }
