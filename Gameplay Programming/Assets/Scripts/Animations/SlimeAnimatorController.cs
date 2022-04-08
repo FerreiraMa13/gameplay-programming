@@ -5,13 +5,13 @@ using UnityEngine;
 public class SlimeAnimatorController : MonoBehaviour
 {
     Animator animator;
-    NPC_Controller controller;
+    Slime_Controller controller;
 
     int jumpHash;
 
     private void Start()
     {
-        controller = GetComponentInParent<NPC_Controller>();
+        controller = GetComponentInParent<Slime_Controller>();
         animator = GetComponent<Animator>();
         jumpHash = Animator.StringToHash("jump");
     }
@@ -21,6 +21,7 @@ public class SlimeAnimatorController : MonoBehaviour
     }
     public void listenLand()
     {
-        controller.landed = true;
+        controller.ResetJump();
     }
+    
 }

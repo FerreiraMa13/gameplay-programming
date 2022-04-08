@@ -12,6 +12,7 @@ TagManager:
   - CameraTargetGroup
   - WrapPoint
   - Floatable
+  - Ground
   layers:
   - Default
   - TransparentFX

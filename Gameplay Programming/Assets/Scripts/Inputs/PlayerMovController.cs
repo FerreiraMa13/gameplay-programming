@@ -53,6 +53,7 @@ public class PlayerMovController : MonoBehaviour
 
     [System.NonSerialized]
     public bool attacking = false;
+    public float stun_lock = 0.0f;
     bool attacked = false;
     public bool falling = false;
 
@@ -124,6 +125,19 @@ public class PlayerMovController : MonoBehaviour
     }
     private void Update()
     {
+        if(attacking)
+        {
+            if (stun_lock < 0)
+            {
+                attacking = false;
+                attacked = false;
+                stun_lock = 0;
+            }
+            else
+            {
+                stun_lock -= Time.deltaTime;
+            }
+        }
         HandleParticles();
         HandleAnimations();
     }
@@ -293,9 +307,10 @@ public class PlayerMovController : MonoBehaviour
     }
     private void AttackInteract()
     {
-        if(!jumping && !attacked && !falling && !landing)
+        if(/*!jumping &&*/ !attacked /*&& !falling && !landing*/)
         {
             attacking = true;
+            stun_lock = 2.0f;
         }
     }
     private bool Compare2Deadzone( float value)

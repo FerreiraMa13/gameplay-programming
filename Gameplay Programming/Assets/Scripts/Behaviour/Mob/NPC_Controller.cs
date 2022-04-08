@@ -23,26 +23,35 @@ public class NPC_Controller : MonoBehaviour
     public float movement_speed = 5.0f;
     public float reaction_speed = 2.0f;
     public float character_armor = 0.0f;
+    public float give_up_time = 1.0f;
 
     [System.NonSerialized] public float distance_from_target;
     [System.NonSerialized] public bool line_of_sight;
     [System.NonSerialized] public bool damage_calc;
     [System.NonSerialized] public enemyState enemy_state;
-    [System.NonSerialized] public bool landed = true;
+    [System.NonSerialized] public bool attacking = false;
+    [System.NonSerialized] public float speed_muliplier = 1.0f;
 
     private float reaction_timer = 0.0f;
     private float turn_smooth_velocity;
-    private float turn_smooth_time = 0.1f;
+    private float turn_smooth_time = 0.2f;
+    private float give_up_timer = -0.1f;
+    private bool giving_up = false;
     private Vector3 target_destination;
+    private float scale = 5.0f;
 
-    PlayerMovController player_controller;
-    SlimeAnimatorController animator;
+    protected PlayerMovController player_controller;
+    /*protected int supports = 0;
+    protected float additional_decay = 0.0f;
+    protected float gravity = 9.8f;
+    protected float gravity_pull = 0.0f;*/
 
     private void Awake()
     {
         enemy_state = default_state;
-        animator = GetComponentInChildren<SlimeAnimatorController>();
+        OwnAwake();
     }
+    
     private void OnValidate()
     {
         patrol_route = GetComponent<SplineFollower>();
@@ -50,9 +59,18 @@ public class NPC_Controller : MonoBehaviour
         {
             this.transform.position = patrol_route.spline.GetPoint(0);
         }
+        if(patrol_route != null)
+        {
+            patrol_route.timeTaken = 100 * 1 / movement_speed;
+        }
     }
     private void Update()
     {
+        if (character_hp < 0)
+        {
+            Die();
+        }
+
         if (player_controller != null)
         {
             distance_from_target = Vector3.Distance(transform.position, player_controller.transform.position);
@@ -64,27 +82,34 @@ public class NPC_Controller : MonoBehaviour
             line_of_sight = false;
         }
 
-        if (landed)
+        OwnUpdate();
+
+        if(give_up_timer > 0)
         {
-            animator.triggerJump();
-            landed = false;
+            give_up_timer -= Time.deltaTime;
+        }
+        else if(giving_up)
+        {
+            giving_up = false;
+            player_controller = null;
+            give_up_timer = 0;
         }
     }
     private void FixedUpdate()
     {
-        enemy_state = Move();
+        OwnFixedUpdate();
+        /*HandleGravity();*/
+        if(ConditionalMove())
+        {
+            enemy_state = Move();
+        }
     }
     public void TakeDamage(float damage_taken)
     {
-        Debug.Log(damage_taken);
         damage_taken -= character_armor;
         if (damage_taken > 0)
         {
             character_hp -= damage_taken;
-        }
-        if (character_hp < 0)
-        {
-            Die();
         }
     }
     public void Die()
@@ -98,10 +123,6 @@ public class NPC_Controller : MonoBehaviour
             }
             Destroy(gameObject);
         }
-    }
-    public void Deathrattle()
-    {
-        Debug.Log("Mob Died");
     }
     public bool DamageConditions()
     {
@@ -153,7 +174,7 @@ public class NPC_Controller : MonoBehaviour
             }
             return enemyState.CHASING;
         }
-        if (patrol_route != null)
+        if (patrol_route != null && ConditionalMove())
         {
             patrol_route.active = true;
         }
@@ -165,6 +186,25 @@ public class NPC_Controller : MonoBehaviour
     }
     private enemyState Disengage(float dt)
     {
+        if (default_state == enemyState.PATROLING)
+        {
+            if (ConditionalMove())
+            {
+                Vector3 non_y_pos = new Vector3(transform.position.x, 0f, transform.position.z);
+                Vector3 non_y_destination = patrol_route.spline.GetPoint(patrol_route.progress);
+                non_y_destination.y = 0;
+                if (Vector3.Distance(non_y_pos, non_y_destination) < scale)
+                {
+                    patrol_route.active = true;
+                    return enemyState.PATROLING;
+                }
+                else
+                {
+                    Debug.Log(Vector3.Distance(non_y_pos, non_y_destination));
+                    MoveTowards(patrol_route.spline.GetPoint(patrol_route.progress));
+                }
+            }
+        }
         return enemyState.DISENGAGING;
     }
     private enemyState Chase(float dt)
@@ -184,13 +224,22 @@ public class NPC_Controller : MonoBehaviour
             MoveTowards(target_destination);
             return enemyState.CHASING;
         }
-        return default_state;
+        return enemyState.DISENGAGING;
     }
+
     public void MoveTowards(Vector3 destination)
     {
         var offset = destination - transform.position;
         Vector3 rotate = RotateCalc(offset, destination.y);
         Vector3 movement = XZMoveCalc(rotate);
+
+        /*movement.y += gravity_pull;
+        if (!ConditionalMove())
+        {
+            movement.x = 0.0f;
+            movement.z = 0.0f;
+        }*/
+
         Vector3 next_pos = transform.position + movement;
         transform.position = Vector3.Lerp(transform.position, next_pos, Time.deltaTime);
     }
@@ -207,9 +256,38 @@ public class NPC_Controller : MonoBehaviour
     private Vector3 XZMoveCalc(Vector3 direction)
     {
         Vector3 forward = Quaternion.Euler(direction).normalized * Vector3.forward;
-        Vector3 movement = forward * movement_speed;
+        Vector3 movement = forward * movement_speed * speed_muliplier;
         return movement;
     }
+    /*private void HandleGravity()
+    {
+        if (supports > 0)
+        {
+            additional_decay = 0.0f;
+            gravity_pull = - gravity * Time.deltaTime;
+        }
+        else
+        {
+            gravity_pull -= (gravity * Time.deltaTime) + additional_decay;
+            additional_decay += (0.2f * Time.deltaTime);
+        }
+    }*/
+
+    /*private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.tag == "Ground" && transform.position.y >= collision.transform.position.y)
+        {
+            supports ++;
+        }
+    }
+    private void OnCollisionExit(Collision collision)
+    {
+        if(collision.gameObject.tag == "Ground" && transform.position.y >= collision.transform.position.y)
+        {
+            supports --;
+        }
+    }*/
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.tag == "Player")
@@ -224,6 +302,8 @@ public class NPC_Controller : MonoBehaviour
         {
             player_controller = other.gameObject.GetComponent<PlayerMovController>();
             player_controller.RemoveNPC(gameObject.GetComponent<NPC_Controller>());
+            give_up_timer = give_up_time;
+            giving_up = true;
         }
     }
     private void OnTriggerStay(Collider other)
@@ -235,5 +315,17 @@ public class NPC_Controller : MonoBehaviour
                 TakeDamage(player_controller.damage);
             }*/
         }
+    }
+
+    protected virtual void OwnAwake() { }
+    protected virtual void OwnUpdate() { }
+    protected virtual void OwnFixedUpdate() { }
+    public virtual void Deathrattle()
+    {
+        Debug.Log("Mob Died");
+    }
+    protected virtual bool ConditionalMove()
+    {
+        return true;
     }
 }
