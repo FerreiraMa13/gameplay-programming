@@ -16,7 +16,7 @@ public class Warp : MonoBehaviour
         if (other.gameObject.tag == "Player")
         {
             Debug.Log("Woosh");
-            player.ResetGravPull();
+            player.Reset();
         }
     }
 }

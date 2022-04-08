@@ -27,6 +27,7 @@ public class NPC_Controller : MonoBehaviour
     public float give_up_time = 1.0f;
     public Vector2 roaming_bounds_x = new Vector2(-5,5);
     public Vector2 roaming_bounds_z = new Vector2(-5, 5);
+    
 
     [System.NonSerialized] public float distance_from_target;
     [System.NonSerialized] public bool line_of_sight;
@@ -34,7 +35,7 @@ public class NPC_Controller : MonoBehaviour
     [System.NonSerialized] public enemyState enemy_state;
     [System.NonSerialized] public bool attacking = false;
     [System.NonSerialized] public float speed_muliplier = 1.0f;
-    /*[System.NonSerialized] */public Vector3 destination;
+    [System.NonSerialized] public Vector3 destination;
 
     private float reaction_timer = 0.0f;
     private float turn_smooth_velocity;
@@ -72,7 +73,7 @@ public class NPC_Controller : MonoBehaviour
     }
     private void Update()
     {
-        if (character_hp < 0)
+        if (character_hp <= 0)
         {
             Die();
         }
@@ -90,15 +91,18 @@ public class NPC_Controller : MonoBehaviour
 
         OwnUpdate();
 
-        if(give_up_timer > 0)
+        if(ConditionalMove())
         {
-            give_up_timer -= Time.deltaTime;
-        }
-        else if(giving_up)
-        {
-            giving_up = false;
-            player_controller = null;
-            give_up_timer = 0;
+            if (give_up_timer > 0)
+            {
+                give_up_timer -= Time.deltaTime;
+            }
+            else if (giving_up)
+            {
+                giving_up = false;
+                player_controller = null;
+                give_up_timer = 0;
+            }
         }
     }
     private void FixedUpdate()
@@ -110,13 +114,16 @@ public class NPC_Controller : MonoBehaviour
             enemy_state = Move();
         }
     }
-    public void TakeDamage(float damage_taken)
+    public virtual void TakeDamage(float damage_taken)
     {
+        
         damage_taken -= character_armor;
         if (damage_taken > 0)
         {
             character_hp -= damage_taken;
         }
+        AdditionalAttackEffects();
+
     }
     public void Die()
     {
@@ -194,10 +201,14 @@ public class NPC_Controller : MonoBehaviour
         }
         if (destination == Vector3.zero || GetSuppressedDistance(destination, Enums.Axis.YAXIS) < scale)
         {
-            destination = Vector3.zero;
-            destination.x = Random.Range(roaming_bounds_x.x, roaming_bounds_x.y);
-            destination.z = Random.Range(roaming_bounds_z.x, roaming_bounds_z.y);
-            destination = transform.parent.position + destination;
+            Vector3 old_destination = destination;
+            while(GetSuppressedDistance(destination, old_destination, Enums.Axis.YAXIS) < scale * 2)
+            {
+                destination = Vector3.zero;
+                destination.x = Random.Range(roaming_bounds_x.x, roaming_bounds_x.y);
+                destination.z = Random.Range(roaming_bounds_z.x, roaming_bounds_z.y);
+                destination = transform.parent.position + destination;
+            }
         }
 
         MoveTowards(destination);
@@ -224,6 +235,10 @@ public class NPC_Controller : MonoBehaviour
                 }
             }
         }
+        else
+        {
+            return default_state;
+        }
         return enemyState.DISENGAGING;
     }
     private enemyState Chase(float dt)
@@ -245,7 +260,6 @@ public class NPC_Controller : MonoBehaviour
         }
         return enemyState.DISENGAGING;
     }
-
     public void MoveTowards(Vector3 destination)
     {
         var offset = destination - transform.position;
@@ -273,7 +287,7 @@ public class NPC_Controller : MonoBehaviour
     private Vector3 XZMoveCalc(Vector3 direction)
     {
         Vector3 forward = Quaternion.Euler(direction).normalized * Vector3.forward;
-        Vector3 movement = forward * movement_speed * speed_muliplier;
+        Vector3 movement = forward *  CalculateMultiplier();
         return movement;
     }
 
@@ -281,6 +295,33 @@ public class NPC_Controller : MonoBehaviour
     {
         Vector3 new_pos = transform.position;
         Vector3 new_vector = c_vector;
+        switch (axis)
+        {
+            case (Enums.Axis.XAXIS):
+                {
+                    new_pos.x = 0;
+                    new_vector.x = 0;
+                    break;
+                }
+            case (Enums.Axis.YAXIS):
+                {
+                    new_pos.y = 0;
+                    new_vector.y = 0;
+                    break;
+                }
+            case (Enums.Axis.ZAXIS):
+                {
+                    new_pos.z = 0;
+                    new_vector.z = 0;
+                    break;
+                }
+        }
+        return Vector3.Distance(new_pos, new_vector);
+    }
+    protected float GetSuppressedDistance(Vector3 vector_a, Vector3 vector_b, Enums.Axis axis)
+    {
+        Vector3 new_pos = vector_a;
+        Vector3 new_vector = vector_b;
         switch (axis)
         {
             case (Enums.Axis.XAXIS):
@@ -373,6 +414,9 @@ public class NPC_Controller : MonoBehaviour
     {
         return true;
     }
-
-    
+    protected virtual void AdditionalAttackEffects(){ }
+    protected virtual float CalculateMultiplier()
+    {
+        return movement_speed * speed_muliplier;
+    }
 }

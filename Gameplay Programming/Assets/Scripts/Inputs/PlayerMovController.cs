@@ -71,6 +71,9 @@ public class PlayerMovController : MonoBehaviour
     Vector3 towards = Vector3.zero;
     public List<NPC_Controller> npc_contollers;
 
+    public float hp = 10.0f;
+    [System.NonSerialized] public float current_hp = 10.0f;
+
     private void Awake()
     {
         camera_controller = GetComponent<PlayerCameraController>();
@@ -82,6 +85,8 @@ public class PlayerMovController : MonoBehaviour
         controls.Player.Jump.started += ctx => Jump();
         controls.Player.Attack.started += ctx => AttackInteract();
         controls.Player.LockOn.started += ctx => AttemptLock();
+
+        current_hp = hp;
     }
     private void OnEnable()
     {
@@ -125,6 +130,10 @@ public class PlayerMovController : MonoBehaviour
     }
     private void Update()
     {
+        if(current_hp <= 0)
+        {
+            Reset();
+        }
         if(attacking)
         {
             if (stun_lock < 0)
@@ -313,6 +322,13 @@ public class PlayerMovController : MonoBehaviour
             stun_lock = 2.0f;
         }
     }
+    public void TakeDamage(float damage_taken)
+    {
+        if(current_hp > 0)
+        {
+            current_hp -= damage_taken;
+        }
+    }
     private bool Compare2Deadzone( float value)
     {
         if (value < deadzone)
@@ -414,10 +430,11 @@ public class PlayerMovController : MonoBehaviour
         }
         return movement;
     }
-    public void ResetGravPull()
+    public void Reset()
     {
         additional_decay = 0;
         jump_velocity = 0;
+        current_hp = hp;
         controller.enabled = false;
         transform.position = respawn_point;
         controller.enabled = true;
